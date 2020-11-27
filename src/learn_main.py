@@ -87,7 +87,7 @@ if __name__ ==  "__main__" :
     # learning
     model.fit(
         generate_feed(),
-        steps_per_epoch=p.EVALUATE_SPAN,
+        steps_per_epoch=p.VALIDATE_SPAN,
         validation_data=([val["m"], val["p"], val["s"], val["h"]], val["y"]),
         epochs=int((p.FEED_FILES_NUM // p.VALIDATE_SPAN) * p.EPOCH),
         verbose=1,
