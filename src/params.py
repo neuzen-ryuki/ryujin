@@ -23,6 +23,7 @@ class Params(metaclass=ConstMeta) :
     COL             = 4
     OUTPUT          = 38
 
-    SAVE_DIR        = "../data/model/"
-    FEED_DIR        = "../data/feed/2019/"
-    VAL_DIR         = "../data/val/2019/"
+    VERSION         = "v0.1"
+    SAVE_DIR        = f"../data/{VERSION}/model/"
+    FEED_DIR        = f"../data/{VERSION}/feed/"
+    VAL_DIR         = f"../data/{VERSION}/val/"
