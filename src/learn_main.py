@@ -80,7 +80,7 @@ if __name__ ==  "__main__" :
     val = np.load(f"{p.VAL_DIR}val.npz")
 
     # setting up learning records
-    fpath = p.SAVE_PATH + "weights.{epoch:02d}-{val_loss:.6f}.hdf5"
+    fpath = p.SAVE_DIR + "weights.{epoch:02d}-{val_loss:.6f}.hdf5"
     cbf1 = keras.callbacks.ModelCheckpoint(filepath=fpath, monitor="val_loss", mode="auto")
     cbf2 = keras.callbacks.CSVLogger(p.SAVE_DIR + "result_history.csv")
 
