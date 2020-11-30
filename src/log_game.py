@@ -64,6 +64,7 @@ class Game :
         self.pao_info = [-1] * 4                                # パオ記録用
         self.steal_flag = False                                 # 手出し記録用
         self.is_first_turn = False                              # 1巡目かどうか
+        self.prevailing_wind = 31 + self.rounds_num             # 場風にあたる牌番号
 
         # Player関係のメンバ変数を初期化
         ten = attr["ten"].split(",")
@@ -124,11 +125,8 @@ class Game :
         self.steal_flag = False
 
         # 機械学習用feedへ書き込み
-        if self.feed_mode :
-            self.feed.write_feed_x_mps(self, self.players[player_num], 0)
-            self.feed.write_feed_x_mps(self, self.players[player_num], 1)
-            self.feed.write_feed_x_mps(self, self.players[player_num], 2)
-            self.feed.write_feed_x_h(self, self.players[player_num])
+        if self.feed_mode and not(self.players[player_num].has_declared_ready) :
+            self.feed.write_feed_x(self, self.players, player_num)
             self.feed.write_feed_y(discarded_tile)
             self.feed.i_batch += 1
             if self.feed.BATCH_SIZE == self.feed.i_batch : self.feed.save_feed()
