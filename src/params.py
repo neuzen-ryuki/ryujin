@@ -27,6 +27,6 @@ class Params(metaclass=ConstMeta) :
     # ファイル保存関連
     VERSION         = "v0.2"
     YEAR            = "2019"
-    SAVE_DIR        = f"../data/{VERSION}/model/"
+    MODEL_DIR        = f"../data/{VERSION}/model/"
     FEED_DIR        = f"../data/{VERSION}/feed/{YEAR}/"
     VAL_DIR         = f"../data/{VERSION}/val/"
