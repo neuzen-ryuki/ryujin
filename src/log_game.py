@@ -127,8 +127,8 @@ class Game :
 
         # 機械学習用feedへ書き込み
         if self.feed_mode and not(self.players[player_num].has_declared_ready) :
-            self.write_feed_x(self, self.players, player_num)
-            self.write_feed_y(discarded_tile)
+            self.feed.write_feed_x(self, self.players, player_num)
+            self.feed.write_feed_y(discarded_tile)
             self.feed.i_batch += 1
             if p.BATCH_SIZE == self.feed.i_batch : self.feed.save_feed()
 
