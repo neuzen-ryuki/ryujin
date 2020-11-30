@@ -30,7 +30,7 @@ class Feed :
     # feedを書き切ったらをnpzファイルとして吐き出す
     def save_feed(self) :
         # ファイルを保存
-        np.savez(self.SAVE_PATH + "feed_%05d" % self.i_feed,
+        np.savez(p.SAVE_PATH + "feed_%05d" % self.i_feed,
                  m=self.feed_x_m,
                  p=self.feed_x_p,
                  s=self.feed_x_s,
