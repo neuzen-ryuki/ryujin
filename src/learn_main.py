@@ -101,7 +101,7 @@ if __name__ ==  "__main__" :
         metrics=["categorical_accuracy"])
 
     # load data for validation
-    val = np.load(f"{p.VAL_XML_DIR}val.npz")
+    val = np.load(f"{p.DIR}val.npz")
 
     # setting up learning records
     fpath = p.DIR + "weights.{epoch:02d}-{val_loss:.6f}.hdf5"
