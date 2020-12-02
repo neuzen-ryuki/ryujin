@@ -22,15 +22,14 @@ def proc_month(files) :
             continue
 
         root = tree.getroot()
-        # game = Game(root, file_name, feed_mode=False, feed=None) # feedは作らない時
-        game = Game(root, file_name, feed_mode=True, feed=feed) # feedを作りたい時
+        game = Game(root, file_name, feed_mode=True, feed=feed)
         game.read_log()
 
 
 if __name__ == "__main__" :
     year = int(input("Input year : "))
     feed = Feed()
-    for month in range(1, 13) :
+    for month in range(1, 12) :
         path = f"../data/xml/{year}/{month:02}/"
         dir_components = os.listdir(path)
         files = [f for f in dir_components if os.path.isfile(os.path.join(path, f))]

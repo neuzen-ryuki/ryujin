@@ -36,6 +36,7 @@ cdef class Feed :
         self.init_feed()
 
 
+    # feedを初期化
     cpdef init_feed(self) :
         self.feed_x_m   = np.zeros((p.BATCH_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
         self.feed_x_p   = np.zeros((p.BATCH_SIZE, p.MPS_ROW,   p.COL, p.PLANE))

@@ -27,19 +27,21 @@ def load_feed() :
 # feedを作りながら学習させる時にfitに渡すgenerator
 def generate_feed() :
     feed = Feed()
-    for month in range(1, 13) :
-        path = f"../data/xml/{p.YEAR}/{month:02}/"
-        dir_components = os.listdir(path)
-        files = [f for f in dir_components if os.path.isfile(os.path.join(path, f))]
-        for file_name in files :
-            try : tree = et.parse(path + file_name)
-            except : continue
-            root = tree.getroot()
-            game = Game(root, file_name, feed_mode=True, feed=feed)
+    # val_dataを作る用に12月のファイルは使わないようにしている
+    for year in range(2019, 2010, -1) :
+        for month in range(1, 12) :
+            path = f"../data/xml/{year}/{month:02}/"
+            dir_components = os.listdir(path)
+            files = [f for f in dir_components if os.path.isfile(os.path.join(path, f))]
+            for file_name in files :
+                try : tree = et.parse(path + file_name)
+                except : continue
+                root = tree.getroot()
+                game = Game(root, file_name, feed_mode=True, feed=feed)
+                yield from game.generate_feed()
 
-            yield from game.read_log()
 
-
+# Neural Networkモデルを構築
 def create_model() :
     ## 数牌処理CNN
     mps_inputs = keras.layers.Input(shape=(p.MPS_ROW, p.COL, p.PLANE), name="mps_input")

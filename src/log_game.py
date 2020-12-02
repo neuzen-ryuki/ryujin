@@ -21,26 +21,39 @@ class Game :
         self.feed = feed
 
 
-    # xml_logのタグを上から一つずつ見ていって，タグに対応する処理メソッドをひたすら実行する
+    # tagによって実行する処理メソッドを切り替える
+    def switch_proc(self, item) :
+        if   item.tag    == "UN"        : self.proc_UN(item.attrib)
+        elif item.tag    == "DORA"      : self.proc_DORA(int(item.attrib["hai"]))
+        elif item.tag[0] == "T"         : self.proc_Tsumo(0, int(item.tag[1:]))
+        elif item.tag[0] == "U"         : self.proc_Tsumo(1, int(item.tag[1:]))
+        elif item.tag[0] == "V"         : self.proc_Tsumo(2, int(item.tag[1:]))
+        elif item.tag[0] == "W"         : self.proc_Tsumo(3, int(item.tag[1:]))
+        elif item.tag[0] == "D"         : self.proc_Dahai(0, int(item.tag[1:]))
+        elif item.tag[0] == "E"         : self.proc_Dahai(1, int(item.tag[1:]))
+        elif item.tag[0] == "F"         : self.proc_Dahai(2, int(item.tag[1:]))
+        elif item.tag[0] == "G"         : self.proc_Dahai(3, int(item.tag[1:]))
+        elif item.tag    == "N"         : self.proc_N(int(item.attrib["who"]), int(item.attrib["m"]))
+        elif item.tag    == "INIT"      : self.proc_INIT(item.attrib)
+        elif item.tag    == "REACH"     : self.proc_REACH(item.attrib)
+        elif item.tag    == "AGARI"     : self.proc_AGARI(item.attrib)
+        elif item.tag    == "RYUUKYOKU" : self.proc_RYUUKYOKU(item.attrib)
+        elif item.tag    == "BYE"       : self.proc_BYE(int(item.attrib["who"]))
+
+
+    # xml_logを読み，feedを作成して，npzファイルとして保存する
     def read_log(self) :
         for item in self.xml_root[4:] :
-            if   item.tag    == "UN"        : self.proc_UN(item.attrib)
-            elif item.tag    == "DORA"      : self.proc_DORA(int(item.attrib["hai"]))
-            elif item.tag[0] == "T"         : self.proc_Tsumo(0, int(item.tag[1:]))
-            elif item.tag[0] == "U"         : self.proc_Tsumo(1, int(item.tag[1:]))
-            elif item.tag[0] == "V"         : self.proc_Tsumo(2, int(item.tag[1:]))
-            elif item.tag[0] == "W"         : self.proc_Tsumo(3, int(item.tag[1:]))
-            elif item.tag[0] == "D"         : self.proc_Dahai(0, int(item.tag[1:]))
-            elif item.tag[0] == "E"         : self.proc_Dahai(1, int(item.tag[1:]))
-            elif item.tag[0] == "F"         : self.proc_Dahai(2, int(item.tag[1:]))
-            elif item.tag[0] == "G"         : self.proc_Dahai(3, int(item.tag[1:]))
-            elif item.tag    == "N"         : self.proc_N(int(item.attrib["who"]), int(item.attrib["m"]))
-            elif item.tag    == "INIT"      : self.proc_INIT(item.attrib)
-            elif item.tag    == "REACH"     : self.proc_REACH(item.attrib)
-            elif item.tag    == "AGARI"     : self.proc_AGARI(item.attrib)
-            elif item.tag    == "RYUUKYOKU" : self.proc_RYUUKYOKU(item.attrib)
-            elif item.tag    == "BYE"       : self.proc_BYE(int(item.attrib["who"]))
+            self.switch_proc(item)
+            if self.feed_mode and p.BATCH_SIZE == self.feed.i_batch :
+                self.feed.save_feed()
+                self.feed.init_feed()
 
+
+    # 学習と同時にfeedを作る時用のgenerator
+    def generate_feed(self) :
+        for item in self.xml_root[4:] :
+            self.switch_proc(item)
             if p.BATCH_SIZE == self.feed.i_batch :
                 yield (self.feed.feed_x, self.feed.feed_y)
                 self.feed.init_feed()
@@ -129,6 +142,7 @@ class Game :
             self.feed.write_feed_x(self, self.players, player_num)
             self.feed.write_feed_y(discarded_tile)
             self.feed.i_batch += 1
+            if p.BATCH_SIZE == self.feed.i_batch : self.feed.save_feed()
 
 
     # 鳴きの処理
