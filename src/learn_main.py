@@ -27,7 +27,7 @@ def load_feed() :
 # feedを作りながら学習させる時にfitに渡すgenerator
 def generate_feed() :
     feed = Feed()
-    for year in range(2019, 2017, -1) :
+    for year in range(2019, 2016, -1) :
         # val_dataを作る用に12月のファイルは使わないようにしている
         for month in range(1, 12) :
             path = f"../data/xml/{year}/{month:02}/"
@@ -104,7 +104,7 @@ if __name__ ==  "__main__" :
     val = np.load(f"{p.DIR}val.npz")
 
     # setting up learning records
-    fpath = p.DIR + "weights.{epoch:02d}-{val_loss:.6f}.hdf5"
+    fpath = p.DIR + "/model/weights.{epoch:02d}-{val_loss:.6f}.hdf5"
     cbf1 = keras.callbacks.ModelCheckpoint(filepath=fpath, monitor="val_loss", mode="auto")
     cbf2 = keras.callbacks.CSVLogger(p.DIR + "result_history.csv")
 
