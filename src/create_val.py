@@ -39,7 +39,12 @@ def create_val() :
         game = Game(root, file_name, feed_mode=True, feed=feed)
         game.read_log()
         i_rnd = random.randint(0,(feed.i_batch - 1))
-        val_x_m[i] = feed.feed_x_m[i_rnd]
+        val_x_m[i]   = feed.feed_x_m[i_rnd]
+        val_x_p[i]   = feed.feed_x_p[i_rnd]
+        val_x_s[i]   = feed.feed_x_s[i_rnd]
+        val_x_h[i]   = feed.feed_x_h[i_rnd]
+        val_x_aux[i] = feed.feed_x_aux[i_rnd]
+        val_y[i]     = feed.feed_y[i_rnd]
         i += 1
         print(f"i: {i}, rnd_i: {i_rnd}")
         if i == p.VAL_SIZE :
