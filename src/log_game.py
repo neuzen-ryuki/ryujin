@@ -142,7 +142,6 @@ class Game :
             self.feed.write_feed_x(self, self.players, player_num)
             self.feed.write_feed_y(discarded_tile)
             self.feed.i_batch += 1
-            if p.BATCH_SIZE == self.feed.i_batch : self.feed.save_feed()
 
 
     # 鳴きの処理
