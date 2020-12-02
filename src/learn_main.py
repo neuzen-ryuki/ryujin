@@ -27,8 +27,8 @@ def load_feed() :
 # feedを作りながら学習させる時にfitに渡すgenerator
 def generate_feed() :
     feed = Feed()
-    # val_dataを作る用に12月のファイルは使わないようにしている
-    for year in range(2019, 2010, -1) :
+    for year in range(2019, 2017, -1) :
+        # val_dataを作る用に12月のファイルは使わないようにしている
         for month in range(1, 12) :
             path = f"../data/xml/{year}/{month:02}/"
             dir_components = os.listdir(path)
@@ -113,6 +113,6 @@ if __name__ ==  "__main__" :
         generate_feed(),
         steps_per_epoch=p.VALIDATE_SPAN,
         validation_data=([val["m"], val["p"], val["s"], val["h"], val["aux"]], val["y"]),
-        epochs=int((p.FEED_FILES_NUM // p.VALIDATE_SPAN) * p.EPOCH),
+        epochs=int((p.TOTAL_BATCHS_NUM // p.VALIDATE_SPAN) * p.EPOCH),
         verbose=1,
         callbacks=[cbf1,cbf2])
