@@ -40,11 +40,10 @@ class Game :
             elif item.tag    == "AGARI"     : self.proc_AGARI(item.attrib)
             elif item.tag    == "RYUUKYOKU" : self.proc_RYUUKYOKU(item.attrib)
             elif item.tag    == "BYE"       : self.proc_BYE(int(item.attrib["who"]))
-            else :
-                print("unknown tag")
-                print(item.tag)
-                print(f"file_name : {self.file_name}")
-                sys.exit()
+
+            if p.BATCH_SIZE == self.feed.i_batch :
+                yield (self.feed.feed_x, self.feed.feed_y)
+                self.feed.init_feed()
 
 
     # INITタグの処理
@@ -130,7 +129,6 @@ class Game :
             self.feed.write_feed_x(self, self.players, player_num)
             self.feed.write_feed_y(discarded_tile)
             self.feed.i_batch += 1
-            if p.BATCH_SIZE == self.feed.i_batch : self.feed.save_feed()
 
 
     # 鳴きの処理

@@ -1,5 +1,6 @@
 # sys
 import os
+import xml.etree.ElementTree as et
 
 # 3rd
 import numpy as np
@@ -9,16 +10,34 @@ from tensorflow.keras import layers
 
 # ours
 from params import Params as p
+from cymod.feed import Feed
+from log_game import Game
 
 
-def generate_feed() :
+# 一旦feedを作ってから学習させる時にfitに渡すgenerator
+def load_feed() :
     dir_components = os.listdir(p.FEED_DIR)
     files = [f for f in dir_components if os.path.isfile(os.path.join(p.FEED_DIR, f))]
-
     for epoch in range(p.EPOCH) :
         for file_name in files :
             feed = np.load(f"{p.FEED_DIR}{file_name}")
             yield [feed["m"], feed["p"], feed["s"], feed["h"], feed["aux"]], feed["y"]
+
+
+# feedを作りながら学習させる時にfitに渡すgenerator
+def generate_feed() :
+    feed = Feed()
+    for month in range(1, 13) :
+        path = f"../data/xml/{p.YEAR}/{month:02}/"
+        dir_components = os.listdir(path)
+        files = [f for f in dir_components if os.path.isfile(os.path.join(path, f))]
+        for file_name in files :
+            try : tree = et.parse(path + file_name)
+            except : continue
+            root = tree.getroot()
+            game = Game(root, file_name, feed_mode=True, feed=feed)
+
+            yield from game.read_log()
 
 
 def create_model() :

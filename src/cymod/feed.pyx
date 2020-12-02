@@ -1,5 +1,4 @@
 # sys
-import sys
 
 # 3rd
 import numpy as np
@@ -8,12 +7,36 @@ import numpy as np
 from mytypes import BlockType
 from params import Params as p
 
+# cython
+cimport numpy as np
 
-class Feed :
+cdef class Feed :
+    cdef public int i_feed
+    cdef public int i_batch
+    cdef public int suit
+    cdef public int plane
+    cdef public int start
+    cdef public int end
+    cdef public list feed_x
+    cdef public np.ndarray feed_x_m
+    cdef public np.ndarray feed_x_p
+    cdef public np.ndarray feed_x_s
+    cdef public np.ndarray feed_x_h
+    cdef public np.ndarray feed_x_aux
+    cdef public np.ndarray feed_y
+
+
     def __init__(self) :
         self.i_feed  = 1
         self.i_batch = 0
+        self.suit  = 0
+        self.plane = 0
+        self.start = 0
+        self.end   = 0
+        self.init_feed()
 
+
+    cpdef init_feed(self) :
         self.feed_x_m   = np.zeros((p.BATCH_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
         self.feed_x_p   = np.zeros((p.BATCH_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
         self.feed_x_s   = np.zeros((p.BATCH_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
@@ -21,15 +44,11 @@ class Feed :
         self.feed_x_aux = np.zeros((p.BATCH_SIZE, p.AUX_INPUT))
         self.feed_x     = [self.feed_x_m, self.feed_x_p, self.feed_x_s, self.feed_x_h, self.feed_x_aux]
         self.feed_y     = np.zeros((p.BATCH_SIZE, p.OUTPUT))
-
-        self.suit  = 0
-        self.plane = 0
-        self.start = 0
-        self.end   = 0
+        self.i_batch    = 0
 
 
-    # feedを書き切ったらnpzファイルとして吐き出す
-    def save_feed(self) :
+    # feedを書き切ったらをnpzファイルとして吐き出す
+    cpdef save_feed(self) :
         # ファイルを保存
         np.savez(p.FEED_DIR + "feed_%05d" % self.i_feed,
                  m=self.feed_x_m,
@@ -39,26 +58,20 @@ class Feed :
                  aux=self.feed_x_aux,
                  y=self.feed_y)
         self.i_feed += 1
-
         # データ初期化
-        self.i_batch = 0
-        self.feed_x_m   = np.zeros((p.BATCH_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
-        self.feed_x_p   = np.zeros((p.BATCH_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
-        self.feed_x_s   = np.zeros((p.BATCH_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
-        self.feed_x_h   = np.zeros((p.BATCH_SIZE, p.HONOR_ROW, p.COL, p.PLANE))
-        self.feed_x_aux = np.zeros((p.BATCH_SIZE, p.AUX_INPUT))
-        self.feed_x     = [self.feed_x_m, self.feed_x_p, self.feed_x_s, self.feed_x_h, self.feed_x_aux]
-        self.feed_y     = np.zeros((p.BATCH_SIZE, p.OUTPUT))
+        self.init_feed()
 
 
     # feed_xに情報を書き込む
-    def write_feed_x(self, game, players, pn) :
+    cpdef write_feed_x(self, game, players, int pn) :
+        cdef int suit
+
+        player = players[pn]
         for suit in range(4) :
             self.suit, self.plane = suit, 0
             if suit == 3 : self.start, self.end = 31, 38
             else         : self.start, self.end = suit*10+1, (suit+1)*10
 
-            player = players[pn]
             self.write_about_hand(player.hand)
             self.write_about_opened_hand(player.opened_hand)
             self.write_about_appearing_tiles(game.appearing_tiles, player.hand)
@@ -66,27 +79,36 @@ class Feed :
             self.write_about_doras(game.doras, game.dora_has_opened)
             if suit == 3 : self.write_about_winds(game.rounds_num, player.players_wind)
             else         : self.write_about_reds(player.reds, player.opened_reds)
+
         self.write_about_aux(game, players, pn)
+
+
+    # 1行を書き込む
+    cdef int write_row(self, int tiles_num, int row) :
+        if   tiles_num == 0 : pass
+        elif tiles_num == 1 : self.feed_x[self.suit][self.i_batch,row,:,self.plane] = [1,0,0,0]
+        elif tiles_num == 2 : self.feed_x[self.suit][self.i_batch,row,:,self.plane] = [1,1,0,0]
+        elif tiles_num == 3 : self.feed_x[self.suit][self.i_batch,row,:,self.plane] = [1,1,1,0]
+        else                : self.feed_x[self.suit][self.i_batch,row,:,self.plane] = [1,1,1,1]
+        row += 1
+        return row
 
 
     # feedにプレイヤの手牌について書き込む
     # 1 plane
-    def write_about_hand(self, hand) :
+    cpdef write_about_hand(self, hand) :
+        cdef int i, row
         row = 0
-        for i in range(self.start,self.end) :
-            if   hand[i] == 0 : pass
-            elif hand[i] == 1 : self.feed_x[self.suit][self.i_batch,row,:,self.plane] = [1,0,0,0]
-            elif hand[i] == 2 : self.feed_x[self.suit][self.i_batch,row,:,self.plane] = [1,1,0,0]
-            elif hand[i] == 3 : self.feed_x[self.suit][self.i_batch,row,:,self.plane] = [1,1,1,0]
-            else              : self.feed_x[self.suit][self.i_batch,row,:,self.plane] = [1,1,1,1]
-            row += 1
-
+        for i in range(self.start,self.end) : row = self.write_row(hand[i], row)
         self.plane += 1
 
 
     # feedにプレイヤの副露手牌について書き込む
     # 1 plane
-    def write_about_opened_hand(self, opened_hand) :
+    cpdef  write_about_opened_hand(self, opened_hand) :
+        cdef int i, row
+        cdef int[38] hand
+
         hand = [0] * 38
         for i in range(0,20,5) :
             if   opened_hand[i] == 0 : break
@@ -99,35 +121,24 @@ class Feed :
             else : hand[opened_hand[i+1]] += 4
 
         row = 0
-        for i in range(self.start, self.end) :
-            if   hand[i] == 0 : pass
-            elif hand[i] == 1 : self.feed_x[self.suit][self.i_batch,row,:,self.plane] = [1,0,0,0]
-            elif hand[i] == 2 : self.feed_x[self.suit][self.i_batch,row,:,self.plane] = [1,1,0,0]
-            elif hand[i] == 3 : self.feed_x[self.suit][self.i_batch,row,:,self.plane] = [1,1,1,0]
-            else              : self.feed_x[self.suit][self.i_batch,row,:,self.plane] = [1,1,1,1]
-            row += 1
-
+        for i in range(self.start, self.end) : row = self.write_row(hand[i], row)
         self.plane += 1
 
 
     # feedにプレイヤから見えている牌の枚数について書き込む
     # 1 plane
-    def write_about_appearing_tiles(self, appearing_tiles, hand) :
+    cpdef write_about_appearing_tiles(self, appearing_tiles, hand) :
+        cdef int i,row
         row = 0
-        for i in range(self.start, self.end) :
-            if   appearing_tiles[i] + hand[i] == 0 : pass
-            elif appearing_tiles[i] + hand[i] == 1 : self.feed_x[self.suit][self.i_batch,row,:,self.plane] = [1,0,0,0]
-            elif appearing_tiles[i] + hand[i] == 2 : self.feed_x[self.suit][self.i_batch,row,:,self.plane] = [1,1,0,0]
-            elif appearing_tiles[i] + hand[i] == 3 : self.feed_x[self.suit][self.i_batch,row,:,self.plane] = [1,1,1,0]
-            else                                   : self.feed_x[self.suit][self.i_batch,row,:,self.plane] = [1,1,1,1]
-            row += 1
-
+        for i in range(self.start, self.end) : row = self.write_row(appearing_tiles[i] + hand[i], row)
         self.plane += 1
 
 
     # feedに他プレイヤの情報(安全牌, 副露牌)について書き込む
     # 6 planes
-    def write_about_enemy_players(self, players, pn) :
+    cpdef write_about_enemy_players(self, players, int pn) :
+        cdef int i, ep
+        cdef int[20] opened_hand
         for i in range(1,4) :
             ep = (pn + i) % 4
             row = 0
@@ -135,12 +146,14 @@ class Feed :
                 if players[ep].furiten_tiles[j] > 0 : self.feed_x[self.suit][self.i_batch,row,:,self.plane] = 1
                 row += 1
             self.plane += 1
-            self.write_about_opened_hand(players[ep].opened_hand)
+            opened_hand = players[ep].opened_hand
+            self.write_about_opened_hand(opened_hand)
 
 
     # feedにドラの情報について書き込む
     # 1 plane
-    def write_about_doras(self, doras, dora_has_opened) :
+    cpdef void write_about_doras(self, doras, dora_has_opened) :
+        cdef int i
         for i in range(5) :
             if dora_has_opened[i] is False or doras[i] == 0 : break
             if doras[i] < self.start or doras[i] > self.end : continue
@@ -151,7 +164,7 @@ class Feed :
 
     # feedに赤牌の情報を書き込む
     # 2 planes
-    def write_about_reds(self, reds, opened_reds) :
+    cpdef write_about_reds(self, reds, opened_reds) :
         if reds[self.suit] : self.feed_x[self.suit][self.i_batch,4,:,self.plane] = 1
         self.plane += 1
 
@@ -161,7 +174,7 @@ class Feed :
 
     # feedに役風牌の情報を書き込む
     # 2 planes
-    def write_about_winds(self, rounds_num, players_wind) :
+    cdef void write_about_winds(self, int rounds_num, int players_wind) :
         # 手牌の中の赤
         self.feed_x[self.suit][self.i_batch,rounds_num,:,self.plane] = 1
         self.plane += 1
@@ -171,7 +184,9 @@ class Feed :
 
 
     # feedに諸々の情報を書き込む
-    def write_about_aux(self, game, players, pn) :
+    cpdef write_about_aux(self, game, players, int pn) :
+        cdef int i, dn, cn, p, player_num
+
         i = 0
         player = players[pn]
         # 自分が何家スタートか
@@ -217,7 +232,7 @@ class Feed :
 
 
     # feed_yに情報を書き込む
-    def write_feed_y(self, discarded_tile) :
-        self.feed_y[self.i_batch][discarded_tile] = 1
+    cpdef write_feed_y(self, int discarded_tile) :
+        self.feed_y[self.i_batch,discarded_tile] = 1
 
 
