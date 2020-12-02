@@ -7,8 +7,7 @@ class ConstMeta(type):
 class Params(metaclass=ConstMeta) :
     # 学習関連
     FEED_FILES_NUM  = 10000
-    # VAL_SIZE        = 50000
-    VAL_SIZE        = 800
+    VAL_SIZE        = 50000
     BATCH_SIZE      = 5000
     VALIDATE_SPAN   = 2000
     EPOCH           = 3

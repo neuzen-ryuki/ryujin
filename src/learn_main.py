@@ -104,9 +104,9 @@ if __name__ ==  "__main__" :
     val = np.load(f"{p.VAL_DIR}val.npz")
 
     # setting up learning records
-    fpath = p.MODEL_DIR + "weights.{epoch:02d}-{val_loss:.6f}.hdf5"
+    fpath = p.DIR + "weights.{epoch:02d}-{val_loss:.6f}.hdf5"
     cbf1 = keras.callbacks.ModelCheckpoint(filepath=fpath, monitor="val_loss", mode="auto")
-    cbf2 = keras.callbacks.CSVLogger(p.MODEL_DIR + "result_history.csv")
+    cbf2 = keras.callbacks.CSVLogger(p.DIR + "result_history.csv")
 
     # learning
     model.fit(
