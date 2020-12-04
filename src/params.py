@@ -5,26 +5,31 @@ class ConstMeta(type):
 
 
 class Params(metaclass=ConstMeta) :
-    FEED_FILES_NUM  = 10000
-    BATCH_SIZE      = 5000
-    VALIDATE_SPAN   = 2000
-    EPOCH           = 3
+    # 学習関連
+    YEARS_NUM        = 5
+    BATCHS_NUM       = 14000
+    TOTAL_BATCHS_NUM = BATCHS_NUM * YEARS_NUM
+    VAL_SIZE         = 50000
+    BATCH_SIZE       = 5000
+    VALIDATE_SPAN    = 2000
+    EPOCH            = 1
 
-    MPS_ROW         = 9
-    MPS_PLANE       = 2
-    MPS_CH          = 128
+    # Feedの形式関連
+    MPS_ROW          = 9
+    HONOR_ROW        = 7
+    COL              = 4
+    PLANE            = 12
+    AUX_INPUT        = 43
+    OUTPUT           = 38
 
-    HONOR_ROW       = 7
-    HONOR_CH        = 128
-    HONOR_PLANE     = 2
+    # モデルのパラメータ数関連
+    MPS_CH           = 128
+    HONOR_CH         = 128
+    UNITS            = 256
 
-    UNITS           = 256
-
-    COL             = 4
-    OUTPUT          = 38
-
-    YEAR            = "2019"
-    VERSION         = "v0.1"
-    SAVE_DIR        = f"../data/{VERSION}/model/"
-    FEED_DIR        = f"../data/{VERSION}/feed/{YEAR}/"
-    VAL_DIR         = f"../data/{VERSION}/val/"
+    # ファイル保存関連
+    VERSION          = "v0.2"
+    DIR              = f"../data/{VERSION}/"
+    FEED_DIR         = f"../data/{VERSION}/feed/"
+    XML_DIR          = f"../data/xml/"
+    VAL_XML_DIR      = f"../data/xml/val/"

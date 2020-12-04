@@ -47,8 +47,8 @@ class Player :
 
     # 立直宣言
     def declare_ready(self, is_first_turn:bool) -> None :
+        self.has_declared_ready = True
         if is_first_turn : self.has_declared_double_ready = True
-        else : self.has_declared_ready = True
         self.has_right_to_one_shot = True
         self.score -= 1000
 

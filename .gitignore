@@ -1,6 +1,10 @@
 data/
 test/
 test.py
+cprof.py
+*.cpp
+*.c
+*.bak
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
