@@ -13,7 +13,15 @@ class Feed :
     def __init__(self) :
         self.i_feed  = 1
         self.i_batch = 0
+        self.suit  = 0
+        self.plane = 0
+        self.start = 0
+        self.end   = 0
+        self.init_feed()
 
+
+    # feedを初期化
+    def init_feed(self) :
         self.feed_x_m   = np.zeros((p.BATCH_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
         self.feed_x_p   = np.zeros((p.BATCH_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
         self.feed_x_s   = np.zeros((p.BATCH_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
@@ -21,11 +29,7 @@ class Feed :
         self.feed_x_aux = np.zeros((p.BATCH_SIZE, p.AUX_INPUT))
         self.feed_x     = [self.feed_x_m, self.feed_x_p, self.feed_x_s, self.feed_x_h, self.feed_x_aux]
         self.feed_y     = np.zeros((p.BATCH_SIZE, p.OUTPUT))
-
-        self.suit  = 0
-        self.plane = 0
-        self.start = 0
-        self.end   = 0
+        self.i_batch = 0
 
 
     # feedを書き切ったらnpzファイルとして吐き出す
