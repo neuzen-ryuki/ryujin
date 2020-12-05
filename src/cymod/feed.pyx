@@ -237,7 +237,6 @@ cdef class Feed :
 
 
     # feedに鳴きの付属情報を書き込む
-    #####
     cpdef write_about_steal_info(self, int tile, int pos) :
         cdef int i
         i = 0
