@@ -123,8 +123,8 @@ class Player :
 
     # 鳴けるかどうかの判定
     def can_steal(self, tile:int, i:int=0) -> bool :
-        # 回線落ちしてたらその局面は学習しない
-        if self.exists is False : return False
+        # 回線落ちとリーチしてたらその局面は学習しない
+        if self.exists is False or self.has_declared_ready : return False
         if tile in TileType.REDS : tile += 5
 
         # ポン判定
@@ -262,3 +262,4 @@ class Player :
                 elif i == 36 : s_hand += "発"
                 else : s_hand += "中"
         print(s_hand)
+
