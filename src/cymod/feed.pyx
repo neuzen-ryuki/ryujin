@@ -105,7 +105,7 @@ cdef class Feed :
             else : self.write_feed_steal_y(0)
             self.i_batch += 1
 
-        if self.steal_info[0] >= 0 and not(action in {1,2}) and self.i_batch < p.Batch_size :
+        if self.steal_info[0] >= 0 and not(action in {1,2}) and self.i_batch < p.BATCH_SIZE :
             self.write_feed_x(game, players, self.steal_info[0])
             self.write_about_steal_info(self.steal_info[4], self.steal_info[1])
             if action in {3, 4, 5} : self.write_feed_steal_y(action)
