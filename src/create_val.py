@@ -54,7 +54,7 @@ def create_val() :
         i += 1
         print(f"i: {i}, rnd_i: {i_rnd}")
         if i == p.VAL_SIZE :
-            np.savez(p.DIR + f"val{p.VAL_SIZE}",
+            np.savez(f"{p.DIR}val/val",
                      m=val_x_m,
                      p=val_x_p,
                      s=val_x_s,

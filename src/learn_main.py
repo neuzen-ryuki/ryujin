@@ -128,21 +128,11 @@ def create_model() :
 if __name__ ==  "__main__" :
     # create
     model = create_model()
+
     # load data for validation
-    # val = np.load(f"{p.DIR}val.npz")
-
-    val_x_m   = np.zeros((p.BATCH_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
-    val_x_p   = np.zeros((p.BATCH_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
-    val_x_s   = np.zeros((p.BATCH_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
-    val_x_h   = np.zeros((p.BATCH_SIZE, p.HONOR_ROW, p.COL, p.PLANE))
-    val_x_si  = np.zeros((p.BATCH_SIZE, p.SI_INPUT)) # si means "steal info"
-    val_x_aux = np.zeros((p.BATCH_SIZE, p.AUX_INPUT))
-    val_x     = [val_x_m, val_x_p, val_x_s, val_x_h, val_x_si, val_x_aux]
-
-    val_main_y  = np.zeros((p.BATCH_SIZE, p.MAIN_OUTPUT))
-    val_steal_y = np.zeros((p.BATCH_SIZE, p.STEAL_OUTPUT))
-    val_ready_y = np.zeros((p.BATCH_SIZE, p.READY_OUTPUT))
-    val_y = [val_main_y, val_steal_y, val_ready_y]
+    val = np.load(f"{p.DIR}val/val.npz")
+    val_x = [val["m"], val["p"], val["s"], val["h"], val["si"], val["aux"]]
+    val_y = [val["my"], val["sy"], val["ry"]]
 
     # setting up learning records
     fpath = p.DIR + "model/weights.{epoch:02d}-{val_loss:.6f}.hdf5"
