@@ -65,9 +65,9 @@ cdef class Feed :
         self.feed_main_y  = np.zeros((p.BATCH_SIZE, p.MAIN_OUTPUT))
         self.feed_steal_y = np.zeros((p.BATCH_SIZE, p.STEAL_OUTPUT))
         self.feed_ready_y = np.zeros((p.BATCH_SIZE, p.READY_OUTPUT))
-        self.feed_y = [self.feed_main_y, self.feed_steal_y, self.feed_ready_y]
+        self.feed_y       = [self.feed_main_y, self.feed_steal_y, self.feed_ready_y]
 
-        self.i_batch    = 0
+        self.i_batch = 0
 
 
     # feedを書き切ったらをnpzファイルとして吐き出す
@@ -105,7 +105,7 @@ cdef class Feed :
             else : self.write_feed_steal_y(0)
             self.i_batch += 1
 
-        if self.steal_info[0] >= 0 and not(action in {1,2}):
+        if self.steal_info[0] >= 0 and not(action in {1,2}) and self.i_batch < p.Batch_size :
             self.write_feed_x(game, players, self.steal_info[0])
             self.write_about_steal_info(self.steal_info[4], self.steal_info[1])
             if action in {3, 4, 5} : self.write_feed_steal_y(action)
