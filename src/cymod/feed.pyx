@@ -2,6 +2,7 @@
 
 # 3rd
 import numpy as np
+from termcolor import colored
 
 # ours
 from mytypes import BlockType
@@ -9,6 +10,12 @@ from params import Params as p
 
 # cython
 cimport numpy as np
+from libcpp cimport bool
+
+class Error(Exception) :
+    def __init__(self):
+        print(colored("Feed.Error : You should select only one learning mode from (main, steal, ready)","red", attrs=["bold"]))
+
 
 cdef class Feed :
     cdef public int i_feed
@@ -18,33 +25,48 @@ cdef class Feed :
     cdef public int start
     cdef public int end
     cdef public list feed_x
+    cdef public list feed_y
+    cdef public int[5] steal_info
     cdef public np.ndarray feed_x_m
     cdef public np.ndarray feed_x_p
     cdef public np.ndarray feed_x_s
     cdef public np.ndarray feed_x_h
+    cdef public np.ndarray feed_x_si
     cdef public np.ndarray feed_x_aux
-    cdef public np.ndarray feed_y
+    cdef public np.ndarray feed_main_y
+    cdef public np.ndarray feed_steal_y
+    cdef public np.ndarray feed_ready_y
 
 
     def __init__(self) :
+        if p.MAIN_MODE + p.STEAL_MODE + p.READY_MODE > 1 : raise Error
         self.i_feed  = 1
         self.i_batch = 0
         self.suit  = 0
         self.plane = 0
         self.start = 0
         self.end   = 0
+        self.steal_info = [-1] * 5
         self.init_feed()
 
 
     # feedを初期化
     cpdef init_feed(self) :
+        # 入力に使うfeed
         self.feed_x_m   = np.zeros((p.BATCH_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
         self.feed_x_p   = np.zeros((p.BATCH_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
         self.feed_x_s   = np.zeros((p.BATCH_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
         self.feed_x_h   = np.zeros((p.BATCH_SIZE, p.HONOR_ROW, p.COL, p.PLANE))
+        self.feed_x_si  = np.zeros((p.BATCH_SIZE, p.SI_INPUT)) # si means "steal info"
         self.feed_x_aux = np.zeros((p.BATCH_SIZE, p.AUX_INPUT))
-        self.feed_x     = [self.feed_x_m, self.feed_x_p, self.feed_x_s, self.feed_x_h, self.feed_x_aux]
-        self.feed_y     = np.zeros((p.BATCH_SIZE, p.OUTPUT))
+        self.feed_x     = [self.feed_x_m, self.feed_x_p, self.feed_x_s, self.feed_x_h, self.feed_x_si, self.feed_x_aux]
+
+        # 正解ラベルfeed
+        self.feed_main_y  = np.zeros((p.BATCH_SIZE, p.MAIN_OUTPUT))
+        self.feed_steal_y = np.zeros((p.BATCH_SIZE, p.STEAL_OUTPUT))
+        self.feed_ready_y = np.zeros((p.BATCH_SIZE, p.READY_OUTPUT))
+        self.feed_y = [self.feed_main_y, self.feed_steal_y, self.feed_ready_y]
+
         self.i_batch    = 0
 
 
@@ -56,6 +78,7 @@ cdef class Feed :
                  p=self.feed_x_p,
                  s=self.feed_x_s,
                  h=self.feed_x_h,
+                 si=self.feed_x_si,
                  aux=self.feed_x_aux,
                  y=self.feed_y)
         self.i_feed += 1
@@ -63,11 +86,40 @@ cdef class Feed :
         self.init_feed()
 
 
+    # 鳴きに関する情報を一旦書き込んで保存する
+    cpdef write_steal_info(self, int player_num, int tile, int pos, int i) :
+        self.steal_info[4] = tile
+        self.steal_info[i * 2] = player_num
+        self.steal_info[i * 2 + 1] = pos
+
+
+    # 鳴きに関するfeed_x,yを書き込む
+    cpdef write_feed_steal(self, game, players, int action) :
+        cdef int i
+        cdef int[2] indexes
+
+        if self.steal_info[2] >= 0 :
+            self.write_feed_x(game, players, self.steal_info[2])
+            self.write_about_steal_info(self.steal_info[4], self.steal_info[3])
+            if action in {1,2} : self.write_feed_steal_y(action)
+            else : self.write_feed_steal_y(0)
+            self.i_batch += 1
+
+        if self.steal_info[0] >= 0 and not(action in {1,2}):
+            self.write_feed_x(game, players, self.steal_info[0])
+            self.write_about_steal_info(self.steal_info[4], self.steal_info[1])
+            if action in {3, 4, 5} : self.write_feed_steal_y(action)
+            else : self.write_feed_steal_y(0)
+            self.i_batch += 1
+
+        self.steal_info = [-1] * 5
+
+
     # feed_xに情報を書き込む
-    cpdef write_feed_x(self, game, players, int pn) :
+    cpdef write_feed_x(self, game, players, int player_num) :
         cdef int suit
 
-        player = players[pn]
+        player = players[player_num]
         for suit in range(4) :
             self.suit, self.plane = suit, 0
             if suit == 3 : self.start, self.end = 31, 38
@@ -76,12 +128,12 @@ cdef class Feed :
             self.write_about_hand(player.hand)
             self.write_about_opened_hand(player.opened_hand)
             self.write_about_appearing_tiles(game.appearing_tiles, player.hand)
-            self.write_about_enemy_players(players, pn)
+            self.write_about_enemy_players(players, player_num)
             self.write_about_doras(game.doras, game.dora_has_opened)
             if suit == 3 : self.write_about_winds(game.rounds_num, player.players_wind)
             else         : self.write_about_reds(player.reds, player.opened_reds)
 
-        self.write_about_aux(game, players, pn)
+        self.write_about_aux(game, players, player_num)
 
 
     # 1行を書き込む
@@ -137,11 +189,11 @@ cdef class Feed :
 
     # feedに他プレイヤの情報(安全牌, 副露牌)について書き込む
     # 6 planes
-    cpdef write_about_enemy_players(self, players, int pn) :
+    cpdef write_about_enemy_players(self, players, int player_num) :
         cdef int i, ep
         cdef int[20] opened_hand
         for i in range(1,4) :
-            ep = (pn + i) % 4
+            ep = (player_num + i) % 4
             row = 0
             for j in range(self.start, self.end) :
                 if players[ep].furiten_tiles[j] > 0 : self.feed_x[self.suit][self.i_batch,row,:,self.plane] = 1
@@ -184,12 +236,22 @@ cdef class Feed :
         self.plane += 1
 
 
+    # feedに鳴きの付属情報を書き込む
+    #####
+    cpdef write_about_steal_info(self, int tile, int pos) :
+        cdef int i
+        i = 0
+        self.feed_x_si[self.i_batch,tile] = 1
+        i += 38
+        self.feed_x_si[self.i_batch,pos + i] = 1
+
+
     # feedに諸々の情報を書き込む
-    cpdef write_about_aux(self, game, players, int pn) :
-        cdef int i, dn, cn, p, player_num
+    cpdef write_about_aux(self, game, players, int player_num) :
+        cdef int i, dn, cn, p
 
         i = 0
-        player = players[pn]
+        player = players[player_num]
         # 自分が何家スタートか
         self.feed_x_aux[self.i_batch,i + player.player_num] = 1
         i += 4
@@ -214,7 +276,7 @@ cdef class Feed :
         i += 8
         # 点数
         for p in range(4) :
-            player_num = (pn + p) % 4
+            player_num = (player_num + p) % 4
             self.feed_x_aux[self.i_batch,i] = players[player_num].score // 100
             i += 1
         # 残り山の枚数
@@ -223,17 +285,27 @@ cdef class Feed :
         # 残りツモの回数
         self.feed_x_aux[self.i_batch,i] = game.remain_tiles_num // 4
         i += 1
-        # 他家のリーチ
+        # 他家のリーチ，一発
         for p in range(1,4) :
-            player_num = (pn + p) % 4
+            player_num = (player_num + p) % 4
             if players[player_num].has_declared_ready : self.feed_x_aux[self.i_batch,i] = 1
             i += 1
             if players[player_num].has_declared_double_ready : self.feed_x_aux[self.i_batch,i] = 1
             i += 1
+            if players[player_num].has_right_to_one_shot : self.feed_x_aux[self.i_batch,i] = 1
 
 
-    # feed_yに情報を書き込む
-    cpdef write_feed_y(self, int discarded_tile) :
-        self.feed_y[self.i_batch,discarded_tile] = 1
+    # feed_y(main)に正解ラベルを書き込む
+    cpdef write_feed_main_y(self, int discarded_tile) :
+        self.feed_main_y[self.i_batch,discarded_tile] = 1
 
+
+    # feed_y(steal)に正解ラベルを書き込む
+    cpdef write_feed_steal_y(self, int steal_type) :
+        self.feed_steal_y[self.i_batch,steal_type] = 1
+
+
+    # feed_y(ready)に正解ラベルを書き込む
+    cpdef write_feed_ready_y(self, int ready) :
+        self.feed_ready_y[self.i_batch,ready] = 1
 

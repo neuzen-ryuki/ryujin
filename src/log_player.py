@@ -121,6 +121,26 @@ class Player :
         return hand
 
 
+    # 鳴けるかどうかの判定
+    def can_steal(self, tile:int, i:int=0) -> bool :
+        # 回線落ちしてたらその局面は学習しない
+        if self.exists is False : return False
+        if tile in TileType.REDS : tile += 5
+
+        # ポン判定
+        if self.hand[tile] >= 2 : return True
+
+        # 自分が打牌者の下家じゃないときと，字牌はチーできない
+        if tile > 30 or i != 1 : return False
+
+        # 判定．順に下チー，嵌張チー，上チーの判定をorで繋いでる
+        if (tile % 10 >= 3 and self.hand[tile-2] > 0 and self.hand[tile-1] > 0) or \
+           (tile % 10 >= 2 and tile % 10 <= 8 and self.hand[tile-1] > 0 and self.hand[tile+1] > 0) or \
+           (tile % 10 >= 3 and self.hand[tile-2] > 0 and self.hand[tile-1] > 0) : return True
+
+        return False
+
+
     # 暗槓の処理
     def proc_ankan(self, tile:int) -> None :
         self.opened_hand[self.opened_sets_num * 5] = BlockType.CLOSED_KAN

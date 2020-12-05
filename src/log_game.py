@@ -10,14 +10,12 @@ from mytypes import TileType, ActionType
 
 
 class Game :
-    def __init__(self, xml_root, file_name, feed_mode=False, feed=None) :
+    def __init__(self, xml_root, file_name, feed=None) :
         self.file_name = file_name
         self.xml_root = xml_root
         self.i_log = 4
         self.players = [Player(i) for i in range(4)]
 
-        # NNに食わせるfeed作成用
-        self.feed_mode = feed_mode
         self.feed = feed
 
 
@@ -45,7 +43,7 @@ class Game :
     def read_log(self) :
         for item in self.xml_root[4:] :
             self.switch_proc(item)
-            if self.feed_mode and p.BATCH_SIZE == self.feed.i_batch :
+            if (p.BATCH_SIZE == self.feed.i_batch) and (p.MAIN_MODE or p.STEAL_MODE or p.READY_MODE) :
                 self.feed.save_feed()
                 self.feed.init_feed()
 
@@ -76,6 +74,7 @@ class Game :
         self.appearing_red_tiles = [False] * 3                  # プレイヤ全員に見えている赤牌． 萬子，筒子，索子の順．
         self.pao_info = [-1] * 4                                # パオ記録用
         self.steal_flag = False                                 # 手出し記録用
+        self.write_flag = False                                 # 鳴き学習用
         self.is_first_turn = False                              # 1巡目かどうか
         self.prevailing_wind = 31 + self.rounds_num             # 場風にあたる牌番号
 
@@ -112,6 +111,11 @@ class Game :
 
     # T, U, V, Wタグの処理
     def proc_Tsumo(self, player_num, tile) :
+        # 一つ前の打牌で，誰かが鳴けた鳴けたけど鳴かなかった時のfeed_steal_yへの書き込み
+        if self.write_flag :
+            self.feed.write_feed_steal(self, self.players, 0)
+            self.write_flag = False
+
         self.org_got_tile = tile
         self.remain_tiles_num -= 1
         self.players[player_num].has_right_to_one_shot = False
@@ -138,15 +142,28 @@ class Game :
         self.steal_flag = False
 
         # 機械学習用feedへ書き込み
-        if self.feed_mode and not(self.players[player_num].has_declared_ready) :
+        if p.MAIN_MODE and not(self.players[player_num].has_declared_ready) and self.players[player_num].exists :
             self.feed.write_feed_x(self, self.players, player_num)
-            self.feed.write_feed_y(discarded_tile)
+            self.feed.write_feed_main_y(discarded_tile)
             self.feed.i_batch += 1
+        elif p.STEAL_MODE and self.remain_tiles_num > 0 :
+            # 他のプレイヤが鳴けるかどうか判定する
+            action_players_num = 0
+            for i in range(1,4) :
+                action_player = (player_num + i) % 4
+                if self.players[action_player].can_steal(discarded_tile, i) :
+                    self.write_flag = True
+                    self.feed.write_steal_info(action_player, discarded_tile, (4 + player_num - action_player) % 4, action_players_num)
+                    action_players_num += 1
 
 
     # 鳴きの処理
     def proc_N(self, player_num:int, mc:int) :
-        self.analyze_mc(player_num, mc)
+        action = self.analyze_mc(player_num, mc)
+        # feed_steal_xyへの書き込み
+        if self.write_flag :
+            self.feed.write_feed_steal(self, self.players, action)
+            self.write_flag = False
 
 
     # Nタグについているmコードを解析してそれぞれの鳴きに対する処理をする
@@ -167,6 +184,7 @@ class Game :
             elif r == 1 : tile, tile1, tile2 = run[1], run[0], run[2]
             elif r == 2 : tile, tile1, tile2 = run[2], run[0], run[1]
             self.proc_chii(player_num, tile, tile1, tile2)
+            return 3 + r
 
         # ポン
         elif(mc & 0x0008) :
@@ -182,6 +200,7 @@ class Game :
                 elif (r == 0)           : tile -= 5
                 else                    : contain_red = True
             self.proc_pon(player_num, pos, tile, contain_red)
+            return 1
 
         # 加槓
         elif(mc & 0x0010) :
@@ -194,6 +213,7 @@ class Game :
             # if(color != 3 and tile % 10 == 5) :
             #     if ((mc & 0x0060) == 0) : tile -= 5
             self.proc_kakan(player_num, tile)
+            return 6
 
         # 大明槓, 暗槓
         else :
@@ -207,6 +227,7 @@ class Game :
                 if   (pos == 0) : self.proc_ankan(player_num, tile)
                 elif (r == 0)   : self.proc_daiminkan(player_num, (tile - 5), pos)
                 else            : self.proc_daiminkan(player_num, tile, pos)
+            return 2
 
 
     # チーが行われた時の処理
