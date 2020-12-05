@@ -136,7 +136,7 @@ class Player :
         # 判定．順に下チー，嵌張チー，上チーの判定をorで繋いでる
         if (tile % 10 >= 3 and self.hand[tile-2] > 0 and self.hand[tile-1] > 0) or \
            (tile % 10 >= 2 and tile % 10 <= 8 and self.hand[tile-1] > 0 and self.hand[tile+1] > 0) or \
-           (tile % 10 >= 3 and self.hand[tile-2] > 0 and self.hand[tile-1] > 0) : return True
+           (tile % 10 <= 7 and self.hand[tile+2] > 0 and self.hand[tile+1] > 0) : return True
 
         return False
 

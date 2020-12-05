@@ -24,8 +24,8 @@ class Params(metaclass=ConstMeta) :
     MAIN_OUTPUT      = 38
     STEAL_OUTPUT     = 6
     READY_OUTPUT     = 2
-    MAIN_MODE        = False
-    STEAL_MODE       = True
+    MAIN_MODE        = True
+    STEAL_MODE       = False
     READY_MODE       = False
 
     # モデルのパラメータ数関連
