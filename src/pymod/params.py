@@ -27,6 +27,7 @@ class Params(metaclass=ConstMeta) :
     MAIN_MODE        = False
     STEAL_MODE       = True
     READY_MODE       = False
+    LOAD             = True
 
     # モデルのパラメータ数関連
     MPS_CH           = 128

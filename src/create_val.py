@@ -8,9 +8,9 @@ import xml.etree.ElementTree as et
 import numpy as np
 
 # ours
-from params import Params as p
-from log_game import Game
-from log_player import Player
+from pymod.params import Params as p
+from pymod.game import Game
+from pymod.player import Player
 from cymod.feed import Feed
 from mytools import fntime
 
@@ -54,7 +54,11 @@ def create_val() :
         i += 1
         print(f"i: {i}, rnd_i: {i_rnd}")
         if i == p.VAL_SIZE :
-            np.savez(f"{p.DIR}val/val",
+            save_name = ""
+            if   p.MAIN_MODE : save_name = "val_main"
+            elif p.MAIN_MODE : save_name = "val_steal"
+            elif p.MAIN_MODE : save_name = "val_ready"
+            np.savez(f"{p.DIR}val/{save_name}",
                      m=val_x_m,
                      p=val_x_p,
                      s=val_x_s,
@@ -65,7 +69,7 @@ def create_val() :
                      sy=val_sy,
                      ry=val_ry)
             print("DONE!")
-            sys.exit()
+            break
         feed.init_feed()
 
 

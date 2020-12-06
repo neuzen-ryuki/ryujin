@@ -8,6 +8,15 @@ import numpy as np
 from mytypes import BlockType
 from params import Params as p
 
+"""
+CAUTION
+    cython化したのでうまく動かない
+    cymod.feedをimportすべし
+
+TODO
+    こっちを使ってもうまく動くように修正
+"""
+
 
 class Feed :
     def __init__(self) :

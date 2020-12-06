@@ -6,9 +6,9 @@ import xml.etree.ElementTree as et
 # 3rd
 
 # ours
-from log_game import Game
-from log_player import Player
-from feed import Feed
+from pymod.game import Game
+from pymod.player import Player
+from cymod.feed import Feed
 from mytools import fntime
 
 

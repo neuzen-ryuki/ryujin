@@ -1,6 +1,8 @@
 data/
 test/
+scratch/
 test.py
+scratch*.py
 cprof.py
 *.cpp
 *.c
