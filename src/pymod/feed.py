@@ -5,8 +5,8 @@ import sys
 import numpy as np
 
 # ours
-from mytypes import BlockType
-from params import Params as p
+from pymod.mytypes import BlockType
+from pymod.params import Params as p
 
 """
 CAUTION

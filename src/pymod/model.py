@@ -2,12 +2,12 @@
 import sys
 
 # 3rd
-import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+from termcolor import colored
 
 # ours
-from params import Params as p
+from pymod.params import Params as p
 
 
 # Neural Networkモデルを構築
@@ -80,16 +80,15 @@ def create_model() :
     keras.utils.plot_model(model, f"{p.DIR}model/ryujin_model.png", show_shapes=True)
 
     ## read trained model
-    if p.LOAD_MODEL :
-        model.load_weights("{p.DIR}/model/{p.MODEL_FILE_NAME}")
+    if p.RETRAIN :
+        file_name = input(colored("Input model file name : ","yellow", attrs=["bold"]))
+        model.load_weights(f"{p.DIR}/model/{file_name}")
 
     ## setting up model
-    adam = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
-    categorical_crossentropy = tf.keras.losses.CategoricalCrossentropy(from_logits=False, label_smoothing=0)
     model.compile(
-        optimizer=adam,
-        loss=categorical_crossentropy,
-        metrics=["categorical_accuracy"],
+        optimizer="adam",
+        loss="ce",
+        metrics=["acc"],
         )
 
     return model

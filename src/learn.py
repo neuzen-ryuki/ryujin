@@ -12,7 +12,7 @@ from tensorflow.keras import layers
 # ours
 from pymod.params import Params as p
 from pymod.game import Game
-from pymod import create_model
+from pymod.model import create_model
 from cymod.feed import Feed
 
 

@@ -5,7 +5,7 @@ from typing import List
 # 3rd
 
 # ours
-from mytypes import BlockType, TileType
+from pymod.mytypes import BlockType, TileType
 
 
 class Player :

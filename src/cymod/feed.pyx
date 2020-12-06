@@ -5,8 +5,8 @@ import numpy as np
 from termcolor import colored
 
 # ours
-from mytypes import BlockType
-from params import Params as p
+from pymod.mytypes import BlockType
+from pymod.params import Params as p
 
 # cython
 cimport numpy as np
