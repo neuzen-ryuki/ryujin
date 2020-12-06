@@ -71,20 +71,21 @@ cdef class Feed :
 
 
     # feedを書き切ったらをnpzファイルとして吐き出す
-    cpdef save_feed(self) :
+    cpdef save_feed(self) : pass
         # ファイルを保存
-        i = self.i_feed
-        np.savez(f"{p.FEED_DIR}/feed_{i:05}",
-                 m=self.feed_x_m,
-                 p=self.feed_x_p,
-                 s=self.feed_x_s,
-                 h=self.feed_x_h,
-                 si=self.feed_x_si,
-                 aux=self.feed_x_aux,
-                 y=self.feed_y)
-        self.i_feed += 1
-        # データ初期化
-        self.init_feed()
+        # TODO v0.3で3出力とも同モデルで計算する方式に対応してないので要修正
+        # i = self.i_feed
+        # np.savez(f"{p.FEED_DIR}/feed_{i:05}",
+        #          m=self.feed_x_m,
+        #          p=self.feed_x_p,
+        #          s=self.feed_x_s,
+        #          h=self.feed_x_h,
+        #          si=self.feed_x_si,
+        #          aux=self.feed_x_aux,
+        #          y=self.feed_y)
+        # self.i_feed += 1
+        # # データ初期化
+        # self.init_feed()
 
 
     # 鳴きに関する情報を一旦書き込んで保存する
