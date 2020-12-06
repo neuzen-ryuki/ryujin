@@ -73,7 +73,8 @@ cdef class Feed :
     # feedを書き切ったらをnpzファイルとして吐き出す
     cpdef save_feed(self) :
         # ファイルを保存
-        np.savez(p.FEED_DIR + "feed_%05d" % self.i_feed,
+        i = self.i_feed
+        np.savez(f"{p.FEED_DIR}/feed_{i:05}",
                  m=self.feed_x_m,
                  p=self.feed_x_p,
                  s=self.feed_x_s,

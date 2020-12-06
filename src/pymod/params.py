@@ -11,7 +11,7 @@ class Params(metaclass=ConstMeta) :
     TOTAL_BATCHS_NUM = BATCHS_NUM * YEARS_NUM
     VAL_SIZE         = 50000
     BATCH_SIZE       = 5000
-    VALIDATE_SPAN    = 2000
+    VALIDATE_SPAN    = 1000
     EPOCH            = 1
 
     # Feedの形式関連
@@ -36,7 +36,10 @@ class Params(metaclass=ConstMeta) :
 
     # ファイル保存関連
     VERSION          = "v0.3"
-    DIR              = f"../data/{VERSION}/"
-    FEED_DIR         = f"../data/{VERSION}/feed/"
-    XML_DIR          = f"../data/xml/"
-    VAL_XML_DIR      = f"../data/xml/val/"
+    DIR              = f"../data/{VERSION}"
+    XML_DIR          = f"../data/xml"
+    FEED_DIR         = f"{DIR}/feed"
+    VAL_DIR          = f"{DIR}/val"
+    MODEL_DIR        = f"{DIR}/model"
+    WEIGHTS_DIR      = f"{MODEL_DIR}/weights"
+    VAL_XML_DIR      = f"{XML_DIR}/val/"

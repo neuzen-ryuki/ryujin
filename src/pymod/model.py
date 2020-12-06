@@ -77,12 +77,12 @@ def create_model() :
                         outputs=[main_outputs, steal_outputs, ready_outputs])
 
     ## モデルの形を出力
-    keras.utils.plot_model(model, f"{p.DIR}model/ryujin_model.png", show_shapes=True)
+    keras.utils.plot_model(model, f"{p.MODEL_DIR}/ryujin_model.png", show_shapes=True)
 
     ## read trained model
     if p.RETRAIN :
         file_name = input(colored("Input model file name : ","yellow", attrs=["bold"]))
-        model.load_weights(f"{p.DIR}/model/{file_name}")
+        model.load_weights(f"{p.WEIGHTS_DIR}/{file_name}")
 
     ## setting up model
     model.compile(

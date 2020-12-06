@@ -23,7 +23,7 @@ def load_feed() :
     files = [f for f in dir_components if os.path.isfile(os.path.join(p.FEED_DIR, f))]
     for epoch in range(p.EPOCH) :
         for file_name in files :
-            feed = np.load(f"{p.FEED_DIR}{file_name}")
+            feed = np.load(f"{p.FEED_DIR}/{file_name}")
             yield [feed["m"], feed["p"], feed["s"], feed["h"], feed["aux"]], [feed["y"], temp]
 
 
@@ -33,7 +33,7 @@ def generate_feed() :
     for year in range(2019, 2010, -1) :
         # val_dataを作る用に12月のファイルは使わないようにしている
         for month in range(1, 12) :
-            path = f"../data/xml/{year}/{month:02}/"
+            path = f"{p.XML_DIR}/{year}/{month:02}/"
             dir_components = os.listdir(path)
             files = [f for f in dir_components if os.path.isfile(os.path.join(path, f))]
             for file_name in files :
@@ -53,14 +53,14 @@ if __name__ ==  "__main__" :
     if   p.MAIN_MODE : load_name = "val_main"
     elif p.MAIN_MODE : load_name = "val_steal"
     elif p.MAIN_MODE : load_name = "val_ready"
-    val = np.load(f"{p.DIR}val/{load_name}.npz")
+    val = np.load(f"{p.VAL_DIR}/{load_name}.npz")
     val_x = [val["m"], val["p"], val["s"], val["h"], val["si"], val["aux"]]
     val_y = [val["my"], val["sy"], val["ry"]]
 
     # setting up learning records
-    fpath = p.DIR + "model/weights.{epoch:02d}-{val_loss:.6f}.hdf5"
-    cbf1 = keras.callbacks.ModelCheckpoint(filepath=fpath, monitor="val_loss", mode="auto")
-    cbf2 = keras.callbacks.CSVLogger(f"{p.DIR}result_history.csv")
+    weight_file_name = p.WEIGHTS_DIR + "/weights.{epoch:02d}-{val_loss:.6f}.hdf5"
+    cbf1 = keras.callbacks.ModelCheckpoint(filepath=weight_file_name, monitor="val_loss", mode="auto")
+    cbf2 = keras.callbacks.CSVLogger(f"{p.MODEL_DIR}/result_history.csv")
 
     # learning
     model.fit(
