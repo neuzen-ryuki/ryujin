@@ -40,7 +40,7 @@ class Params(metaclass=ConstMeta) :
     # ファイル保存関連
 
     VERSION          = "v0.4"
-    DATA_DIR         = sys.path.append(os.path.join(os.path.dirname(__file__), '../../data'))
+    DATA_DIR         = os.path.join(os.path.dirname(__file__), '../../data')
     DIR              = f"{DATA_DIR}/{VERSION}"
     XML_DIR          = f"{DATA_DIR}/xml"
     FEED_DIR         = f"{DIR}/feed"
