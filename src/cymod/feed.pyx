@@ -1,15 +1,15 @@
 # sys
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../pymod'))
 
 # 3rd
 import numpy as np
 from termcolor import colored
 
 # ours
-from pymod.mytypes import BlockType
-from pymod.params import Params as p
+from mytypes import BlockType
+from params import Params as p
 
 # cython
 cimport numpy as np
