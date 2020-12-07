@@ -1,3 +1,6 @@
+import os
+import sys
+
 class ConstMeta(type):
     def __setattr__(self, name, value):
         if name in self.__dict__: raise TypeError(f'Can\'t rebind const ({name})')
@@ -35,9 +38,11 @@ class Params(metaclass=ConstMeta) :
     UNITS            = 256
 
     # ファイル保存関連
-    VERSION          = "v0.3"
-    DIR              = f"../data/{VERSION}"
-    XML_DIR          = f"../data/xml"
+
+    VERSION          = "v0.4"
+    DATA_DIR         = os.path.join(os.path.dirname(__file__), '../../data')
+    DIR              = f"{DATA_DIR}/{VERSION}"
+    XML_DIR          = f"{DATA_DIR}/xml"
     FEED_DIR         = f"{DIR}/feed"
     VAL_DIR          = f"{DIR}/val"
     MODEL_DIR        = f"{DIR}/model"

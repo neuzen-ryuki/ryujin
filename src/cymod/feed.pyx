@@ -1,15 +1,15 @@
 # sys
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../pymod'))
 
 # 3rd
 import numpy as np
 from termcolor import colored
 
 # ours
-from pymod.mytypes import BlockType
-from pymod.params import Params as p
+from mytypes import BlockType
+from params import Params as p
 
 # cython
 cimport numpy as np
@@ -23,6 +23,7 @@ class Error(Exception) :
 cdef class Feed :
     cdef public int i_feed
     cdef public int i_batch
+    cdef public int batch_size
     cdef public int suit
     cdef public int plane
     cdef public int start
@@ -41,7 +42,7 @@ cdef class Feed :
     cdef public np.ndarray feed_ready_y
 
 
-    def __init__(self) :
+    def __init__(self, int batch_size=0) :
         if p.MAIN_MODE + p.STEAL_MODE + p.READY_MODE > 1 : raise Error
         self.i_feed  = 1
         self.i_batch = 0
@@ -50,26 +51,36 @@ cdef class Feed :
         self.start = 0
         self.end   = 0
         self.steal_info = [-1] * 5
+
+        if batch_size == 0 : self.batch_size = p.BATCH_SIZE
+        else : self.batch_size = batch_size
         self.init_feed()
 
 
     # feedを初期化
     cpdef init_feed(self) :
         # 入力に使うfeed
-        self.feed_x_m   = np.zeros((p.BATCH_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
-        self.feed_x_p   = np.zeros((p.BATCH_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
-        self.feed_x_s   = np.zeros((p.BATCH_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
-        self.feed_x_h   = np.zeros((p.BATCH_SIZE, p.HONOR_ROW, p.COL, p.PLANE))
-        self.feed_x_si  = np.zeros((p.BATCH_SIZE, p.SI_INPUT)) # si means "steal info"
-        self.feed_x_aux = np.zeros((p.BATCH_SIZE, p.AUX_INPUT))
+        self.feed_x_m   = np.zeros((self.batch_size, p.MPS_ROW,   p.COL, p.PLANE))
+        self.feed_x_p   = np.zeros((self.batch_size, p.MPS_ROW,   p.COL, p.PLANE))
+        self.feed_x_s   = np.zeros((self.batch_size, p.MPS_ROW,   p.COL, p.PLANE))
+        self.feed_x_h   = np.zeros((self.batch_size, p.HONOR_ROW, p.COL, p.PLANE))
+        self.feed_x_si  = np.zeros((self.batch_size, p.SI_INPUT)) # si means "steal info"
+        self.feed_x_aux = np.zeros((self.batch_size, p.AUX_INPUT))
         self.feed_x     = [self.feed_x_m, self.feed_x_p, self.feed_x_s, self.feed_x_h, self.feed_x_si, self.feed_x_aux]
 
         # 正解ラベルfeed
-        self.feed_main_y  = np.zeros((p.BATCH_SIZE, p.MAIN_OUTPUT))
-        self.feed_steal_y = np.zeros((p.BATCH_SIZE, p.STEAL_OUTPUT))
-        self.feed_ready_y = np.zeros((p.BATCH_SIZE, p.READY_OUTPUT))
+        self.feed_main_y  = np.zeros((self.batch_size, p.MAIN_OUTPUT))
+        self.feed_steal_y = np.zeros((self.batch_size, p.STEAL_OUTPUT))
+        self.feed_ready_y = np.zeros((self.batch_size, p.READY_OUTPUT))
         self.feed_y       = [self.feed_main_y, self.feed_steal_y, self.feed_ready_y]
 
+        self.i_batch = 0
+
+
+    # feed, i_batchをゼロクリア
+    cpdef clear_feed(self) :
+        for x in self.feed_x : x[:] = 0
+        for y in self.feed_y : y[:] = 0
         self.i_batch = 0
 
 
