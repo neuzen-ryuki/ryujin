@@ -4,9 +4,9 @@ import sys
 # 3rd
 
 # ours
-from pymod.params import Params as p
-from pymod.player import Player
-from pymod.mytypes import TileType, ActionType
+from .params import Params as p
+from .player import Player
+from .mytypes import TileType, ActionType
 
 
 class Game :

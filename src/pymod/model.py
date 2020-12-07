@@ -7,7 +7,7 @@ from tensorflow.keras import layers
 from termcolor import colored
 
 # ours
-from pymod.params import Params as p
+from .params import Params as p
 
 
 # Neural Networkモデルを構築
