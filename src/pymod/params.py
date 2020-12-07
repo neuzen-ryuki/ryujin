@@ -11,7 +11,7 @@ class Params(metaclass=ConstMeta) :
     TOTAL_BATCHS_NUM = BATCHS_NUM * YEARS_NUM
     VAL_SIZE         = 50000
     BATCH_SIZE       = 5000
-    VALIDATE_SPAN    = 2000
+    VALIDATE_SPAN    = 1000
     EPOCH            = 1
 
     # Feedの形式関連
@@ -19,8 +19,15 @@ class Params(metaclass=ConstMeta) :
     HONOR_ROW        = 7
     COL              = 4
     PLANE            = 12
-    AUX_INPUT        = 43
-    OUTPUT           = 38
+    AUX_INPUT        = 46
+    SI_INPUT         = 42
+    MAIN_OUTPUT      = 38
+    STEAL_OUTPUT     = 6
+    READY_OUTPUT     = 2
+    MAIN_MODE        = False
+    STEAL_MODE       = True
+    READY_MODE       = False
+    RETRAIN          = True
 
     # モデルのパラメータ数関連
     MPS_CH           = 128
@@ -28,8 +35,11 @@ class Params(metaclass=ConstMeta) :
     UNITS            = 256
 
     # ファイル保存関連
-    VERSION          = "v0.2"
-    DIR              = f"../data/{VERSION}/"
-    FEED_DIR         = f"../data/{VERSION}/feed/"
-    XML_DIR          = f"../data/xml/"
-    VAL_XML_DIR      = f"../data/xml/val/"
+    VERSION          = "v0.3"
+    DIR              = f"../data/{VERSION}"
+    XML_DIR          = f"../data/xml"
+    FEED_DIR         = f"{DIR}/feed"
+    VAL_DIR          = f"{DIR}/val"
+    MODEL_DIR        = f"{DIR}/model"
+    WEIGHTS_DIR      = f"{MODEL_DIR}/weights"
+    VAL_XML_DIR      = f"{XML_DIR}/val/"
