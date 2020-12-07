@@ -23,6 +23,7 @@ class Error(Exception) :
 cdef class Feed :
     cdef public int i_feed
     cdef public int i_batch
+    cdef public int batch_size
     cdef public int suit
     cdef public int plane
     cdef public int start
@@ -57,7 +58,7 @@ cdef class Feed :
 
 
     # feedを初期化
-    cpdef init_feed(self, int batch_size) :
+    cpdef init_feed(self) :
         # 入力に使うfeed
         self.feed_x_m   = np.zeros((self.batch_size, p.MPS_ROW,   p.COL, p.PLANE))
         self.feed_x_p   = np.zeros((self.batch_size, p.MPS_ROW,   p.COL, p.PLANE))
