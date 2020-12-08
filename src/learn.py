@@ -57,15 +57,22 @@ if __name__ ==  "__main__" :
     val_y = [val["my"], val["sy"], val["ry"]]
 
     # setting up learning records
+    saved_file_name = p.SAVED_DIR + "/{epoch:02d}-{val_loss:.6f}.h5"
+    cbf1 = keras.callbacks.ModelCheckpoint(filepath=saved_file_name,
+                                           save_weights_only=False,
+                                           monitor="val_loss")
     cbf2 = keras.callbacks.CSVLogger(f"{p.RESULT_DIR}/result_history.csv")
 
     # learning
-    model.fit(
-        generate_feed(),
-        validation_data=(val_x, val_y),
-        steps_per_epoch=p.VALIDATE_SPAN,
-        epochs=p.EPOCH,
-        verbose=1,
-        callbacks=[cbf2])
+    # 途中でgenerate_feed()がfeedを吐かなくなってもsaveするようtry-exceptで制御
+    try :
+        model.fit(
+            generate_feed(),
+            validation_data=(val_x, val_y),
+            steps_per_epoch=p.VALIDATE_SPAN,
+            epochs=(p.TOTAL_BATCHS_NUM // p.VALIDATE_SPAN) * p.EPOCH,
+            verbose=1,
+            callbacks=[cbf1, cbf2])
+    except :
+        model.save(p.SAVED_DIR)
 
-    model.save(p.SAVED_DIR)

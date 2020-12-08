@@ -15,8 +15,8 @@ def create_model() :
     ## 学習済みモデルをロードするかどうか決める
     load = input(colored("Load the trained model? (Y/n): ","yellow", attrs=["bold"]))
     if load == "Y" :
-        print(colored("Loading the trained model...","yellow", attrs=["bold"]))
-        model = keras.models.load_model(p.SAVED_DIR)
+        file_name = input(colored("Input .h5 file name : ","yellow", attrs=["bold"]))
+        model = keras.models.load_model(f"{p.SAVED_DIR}/{file_name}")
         return model
     else : print(colored("Creating the model...","yellow", attrs=["bold"]))
 
