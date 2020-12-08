@@ -12,6 +12,14 @@ from .params import Params as p
 
 # Neural Networkモデルを構築
 def create_model() :
+    ## 学習済みモデルをロードするかどうか決める
+    load = input(colored("Load the trained model? (Y/n): ","yellow", attrs=["bold"]))
+    if load == "Y" :
+        print(colored("Loading the trained model...","yellow", attrs=["bold"]))
+        model = keras.models.load_model(p.SAVED_DIR)
+        return model
+    else : print(colored("Creating the model...","yellow", attrs=["bold"]))
+
     ## 数牌処理CNN
     mps_inputs = keras.layers.Input(shape=(p.MPS_ROW, p.COL, p.PLANE), name="mps_input")
     x = layers.Conv2D(p.MPS_CH, (3,2), activation="relu", name="mpsConv1")(mps_inputs)
@@ -77,19 +85,13 @@ def create_model() :
                         outputs=[main_outputs, steal_outputs, ready_outputs])
 
     ## モデルの形を出力
-    keras.utils.plot_model(model, f"{p.MODEL_DIR}/ryujin_model.png", show_shapes=True)
-
-    ## read trained model
-    if p.RETRAIN :
-        file_name = input(colored("Input model file name : ","yellow", attrs=["bold"]))
-        model.load_weights(f"{p.WEIGHTS_DIR}/{file_name}")
+    keras.utils.plot_model(model, f"{p.RESULT_DIR}/ryujin_model.png", show_shapes=True)
 
     ## setting up model
     model.compile(
         optimizer="adam",
-        loss="ce",
-        metrics=["acc"],
-        )
+        loss="categorical_crossentropy",
+        metrics=["accuracy"])
 
     return model
 

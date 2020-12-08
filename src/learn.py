@@ -10,10 +10,10 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 # ours
-from pymod.params import Params as p
-from pymod.game import Game
-from pymod.model import create_model
-from cymod.feed import Feed
+from .pymod.params import Params as p
+from .pymod.game import Game
+from .pymod.model import create_model
+from .cymod.feed import Feed
 
 
 # 一旦feedを作ってから学習させる時にfitに渡すgenerator
@@ -30,9 +30,8 @@ def load_feed() :
 # feedを作りながら学習させる時にfitに渡すgenerator
 def generate_feed() :
     feed = Feed()
-    for year in range(2019, 2010, -1) :
-        # val_dataを作る用に12月のファイルは使わないようにしている
-        for month in range(1, 12) :
+    for year in range(2019, (2019-p.YEARS_NUM), -1) :
+        for month in range(1, 12) : # val_dataを作る用に12月のログは使わないようにしている
             path = f"{p.XML_DIR}/{year}/{month:02}/"
             dir_components = os.listdir(path)
             files = [f for f in dir_components if os.path.isfile(os.path.join(path, f))]
@@ -58,15 +57,15 @@ if __name__ ==  "__main__" :
     val_y = [val["my"], val["sy"], val["ry"]]
 
     # setting up learning records
-    weight_file_name = p.WEIGHTS_DIR + "/weights.{epoch:02d}-{val_loss:.6f}.hdf5"
-    cbf1 = keras.callbacks.ModelCheckpoint(filepath=weight_file_name, monitor="val_loss", mode="auto")
-    cbf2 = keras.callbacks.CSVLogger(f"{p.MODEL_DIR}/result_history.csv")
+    cbf2 = keras.callbacks.CSVLogger(f"{p.RESULT_DIR}/result_history.csv")
 
     # learning
     model.fit(
         generate_feed(),
         validation_data=(val_x, val_y),
         steps_per_epoch=p.VALIDATE_SPAN,
-        epochs=int((p.TOTAL_BATCHS_NUM // p.VALIDATE_SPAN) * p.EPOCH),
+        epochs=p.EPOCH,
         verbose=1,
-        callbacks=[cbf1,cbf2])
+        callbacks=[cbf2])
+
+    model.save(p.SAVED_DIR)

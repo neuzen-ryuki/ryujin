@@ -129,6 +129,14 @@ class Game :
         discarded_tile = self.convert_tile(tile)
         exchanged = False
         if tile != self.org_got_tile : exchanged = True
+
+        # feed_mainへ書き込み
+        if p.MAIN_MODE and not(self.players[player_num].has_declared_ready) and self.players[player_num].exists :
+            self.feed.write_feed_x(self, self.players, player_num)
+            self.feed.write_feed_main_y(discarded_tile)
+            self.feed.i_batch += 1
+
+        # プレイヤが牌を切る
         self.players[player_num].discard_tile(discarded_tile, exchanged)
 
         # 捨てられた牌を見えている牌に記録
@@ -141,12 +149,8 @@ class Game :
         if self.steal_flag : self.players[player_num].add_tile_to_discard_tiles_after_stealing(discarded_tile)
         self.steal_flag = False
 
-        # 機械学習用feedへ書き込み
-        if p.MAIN_MODE and not(self.players[player_num].has_declared_ready) and self.players[player_num].exists :
-            self.feed.write_feed_x(self, self.players, player_num)
-            self.feed.write_feed_main_y(discarded_tile)
-            self.feed.i_batch += 1
-        elif p.STEAL_MODE and self.remain_tiles_num > 0 :
+        # feed_stealへ書き込み
+        if p.STEAL_MODE and self.remain_tiles_num > 0 :
             # 他のプレイヤが鳴けるかどうか判定する
             action_players_num = 0
             for i in range(1,4) :

@@ -9,12 +9,12 @@ class ConstMeta(type):
 
 class Params(metaclass=ConstMeta) :
     # 学習関連
-    YEARS_NUM        = 5
-    BATCHS_NUM       = 14000
+    YEARS_NUM        = 1
+    BATCHS_NUM       = 16000
     TOTAL_BATCHS_NUM = BATCHS_NUM * YEARS_NUM
-    VAL_SIZE         = 50000
+    VAL_SIZE         = 10000
     BATCH_SIZE       = 5000
-    VALIDATE_SPAN    = 1000
+    VALIDATE_SPAN    = 500
     EPOCH            = 1
 
     # Feedの形式関連
@@ -27,10 +27,9 @@ class Params(metaclass=ConstMeta) :
     MAIN_OUTPUT      = 38
     STEAL_OUTPUT     = 6
     READY_OUTPUT     = 2
-    MAIN_MODE        = False
-    STEAL_MODE       = True
+    MAIN_MODE        = True
+    STEAL_MODE       = False
     READY_MODE       = False
-    RETRAIN          = True
 
     # モデルのパラメータ数関連
     MPS_CH           = 128
@@ -46,5 +45,6 @@ class Params(metaclass=ConstMeta) :
     FEED_DIR         = f"{DIR}/feed"
     VAL_DIR          = f"{DIR}/val"
     MODEL_DIR        = f"{DIR}/model"
-    WEIGHTS_DIR      = f"{MODEL_DIR}/weights"
+    RESULT_DIR       = f"{DIR}/result"
+    SAVED_DIR        = f"{DIR}/saved"
     VAL_XML_DIR      = f"{XML_DIR}/val/"
