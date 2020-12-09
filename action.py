@@ -22,9 +22,10 @@ class Action :
         self.feed.clear_feed()
 
         player = players[player_num]
-        indexes = reversed(np.argsort(pred[0][0]))
+        indexes = reversed(np.argsort(-pred[0][0]))
         for i in indexes :
             if (player.hand[i] > 0) or (i in TileType.REDS and player.reds[i // 10] and player.hand[i+5] > 0) :
+                if i in TileType.FIVES and player.hand[i] == 1 and player.reds[i // 10] : continue
                 if player.last_got_tile == i : exchanged = True
                 else :exchanged = False
                 return i, exchanged
@@ -33,7 +34,7 @@ class Action :
     # リーチするかどうか決める
     # TODO ちゃんと書く
     def decide_to_declare_ready(self, game, players, player_num) -> bool :
-        return False
+        return True
 
     # 鳴くかどうか決める
     # TODO ちゃんと書く

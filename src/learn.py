@@ -10,10 +10,10 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 # ours
-from .pymod.params import Params as p
-from .pymod.game import Game
-from .pymod.model import create_model
-from .cymod.feed import Feed
+from pymod.params import Params as p
+from pymod.game import Game
+from pymod.model import create_model
+from cymod.feed import Feed
 
 
 # 一旦feedを作ってから学習させる時にfitに渡すgenerator
@@ -74,5 +74,5 @@ if __name__ ==  "__main__" :
             verbose=1,
             callbacks=[cbf1, cbf2])
     except :
-        model.save(p.SAVED_DIR)
+        model.save(saved_file_name)
 
