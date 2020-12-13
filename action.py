@@ -34,8 +34,8 @@ class Action :
 
     # 鳴くかどうか決める
     def decide_to_steal(self, game, players, tile, pos, player_num) -> (int, int, int, int, int, int) :
-        self.write_feed_x(game, players, player_num)
-        self.write_about_steal_info(tile, pos)
+        self.feed.write_feed_x(game, players, player_num)
+        self.feed.write_about_steal_info(tile, pos)
         pred = self.steal_model.predict(self.feed.feed_x)
         self.feed.clear_feed()
 
