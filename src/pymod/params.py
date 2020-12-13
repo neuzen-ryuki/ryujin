@@ -34,11 +34,13 @@ class Params(metaclass=ConstMeta) :
     # モデルのパラメータ数関連
     MPS_CH           = 128
     HONOR_CH         = 128
+    COMMON_UNITS1    = 768
+    COMMON_UNITS2    = 512
     UNITS            = 256
 
     # ファイル保存関連
 
-    VERSION          = "v0.4"
+    VERSION          = "v0.7"
     DATA_DIR         = os.path.join(os.path.dirname(__file__), '../../data')
     DIR              = f"{DATA_DIR}/{VERSION}"
     XML_DIR          = f"{DATA_DIR}/xml"

@@ -82,7 +82,7 @@ class Game :
         ten = attr["ten"].split(",")
         for i in range(4) :
             self.players[i].init_subgame(self.rotations_num)
-            self.players[i].score = int(ten[i] * 100)
+            self.players[i].score = int(ten[i]) * 100
 
         # 配牌を配る
         for i in range(4) :
