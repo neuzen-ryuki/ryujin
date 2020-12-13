@@ -49,9 +49,9 @@ if __name__ ==  "__main__" :
 
     # load data for validation
     load_name = ""
-    if   p.MAIN_MODE : load_name = "val_main"
-    elif p.MAIN_MODE : load_name = "val_steal"
-    elif p.MAIN_MODE : load_name = "val_ready"
+    if   p.MAIN_MODE  : load_name = "val_main"
+    elif p.STEAL_MODE : load_name = "val_steal"
+    elif p.READY_MODE : load_name = "val_ready"
     val = np.load(f"{p.VAL_DIR}/{load_name}.npz")
     val_x = [val["m"], val["p"], val["s"], val["h"], val["si"], val["aux"]]
     val_y = [val["my"], val["sy"], val["ry"]]

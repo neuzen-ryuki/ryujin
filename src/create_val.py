@@ -55,9 +55,9 @@ def create_val() :
         print(f"i: {i}, rnd_i: {i_rnd}")
         if i == p.VAL_SIZE :
             save_name = ""
-            if   p.MAIN_MODE : save_name = "val_main"
-            elif p.MAIN_MODE : save_name = "val_steal"
-            elif p.MAIN_MODE : save_name = "val_ready"
+            if   p.MAIN_MODE  : save_name = "val_main"
+            elif p.STEAL_MODE : save_name = "val_steal"
+            elif p.READY_MODE : save_name = "val_ready"
             np.savez(f"{p.VAL_DIR}/{save_name}",
                      m=val_x_m,
                      p=val_x_p,
