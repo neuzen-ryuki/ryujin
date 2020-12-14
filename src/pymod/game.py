@@ -242,7 +242,7 @@ class Game :
             self.tile = (color * 10) + (pn % 9) + 1
             action = 2
             if(color != 3 and self.tile % 10 == 5) :
-                if (pos == 0) : action = 7
+                if (self.pos == 0) : action = 7
                 elif (r == 0) : self.tile -= 5
             return action
 
