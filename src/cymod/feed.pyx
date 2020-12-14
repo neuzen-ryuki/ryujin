@@ -290,6 +290,7 @@ cdef class Feed :
             if players[player_num].has_declared_double_ready : self.feed_x_aux[self.i_batch,i] = 1
             i += 1
             if players[player_num].has_right_to_one_shot : self.feed_x_aux[self.i_batch,i] = 1
+            i += 1
 
 
     # feed_y(main)に正解ラベルを書き込む

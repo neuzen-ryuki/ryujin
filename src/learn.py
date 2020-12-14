@@ -8,6 +8,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+from termcolor import colored
 
 # ours
 from pymod.params import Params as p
@@ -28,7 +29,7 @@ def load_feed() :
 
 
 # feedを作りながら学習させる時にfitに渡すgenerator
-def generate_feed() :
+def generate_feed(mode:str) :
     feed = Feed()
     for year in range(2019, (2019-p.YEARS_NUM), -1) :
         for month in range(1, 12) : # val_dataを作る用に12月のログは使わないようにしている
@@ -39,20 +40,18 @@ def generate_feed() :
                 try : tree = et.parse(path + file_name)
                 except : continue
                 root = tree.getroot()
-                game = Game(root, file_name, feed=feed)
+                game = Game(root, file_name, mode, feed=feed)
                 yield from game.generate_feed()
 
 
 if __name__ ==  "__main__" :
+    # select mode
+    mode = input(colored("Input the mode. (main, steal, ready): ","yellow", attrs=["bold"]))
     # create
-    model = create_model()
+    model = create_model(mode)
 
     # load data for validation
-    load_name = ""
-    if   p.MAIN_MODE  : load_name = "val_main"
-    elif p.STEAL_MODE : load_name = "val_steal"
-    elif p.READY_MODE : load_name = "val_ready"
-    val = np.load(f"{p.VAL_DIR}/{load_name}.npz")
+    val = np.load(f"{p.VAL_DIR}/val_{mode}.npz")
     val_x = [val["m"], val["p"], val["s"], val["h"], val["si"], val["aux"]]
     val_y = [val["my"], val["sy"], val["ry"]]
 
@@ -67,12 +66,12 @@ if __name__ ==  "__main__" :
     # 途中でgenerate_feed()がfeedを吐かなくなってもsaveするようtry-exceptで制御
     try :
         model.fit(
-            generate_feed(),
+            generate_feed(mode),
             validation_data=(val_x, val_y),
             steps_per_epoch=p.VALIDATE_SPAN,
             epochs=(p.TOTAL_BATCHS_NUM // p.VALIDATE_SPAN) * p.EPOCH,
             verbose=1,
             callbacks=[cbf1, cbf2])
-    except :
-        model.save(saved_file_name)
+    except : pass
+    model.save(saved_file_name)
 

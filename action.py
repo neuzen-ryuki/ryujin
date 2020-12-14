@@ -39,7 +39,7 @@ class Action :
         pred = self.steal_model.predict(self.feed.feed_x)
         self.feed.clear_feed()
 
-        indexes = tuple(np.argsort(-pred[0][0]))
+        indexes = tuple(np.argsort(-pred[1][0]))
         return indexes
 
 

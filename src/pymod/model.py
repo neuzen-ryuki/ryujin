@@ -11,7 +11,7 @@ from .params import Params as p
 
 
 # Neural Networkモデルを構築
-def create_model(mode:str) :
+def create_model(mode:str) -> keras.Model :
     ## 学習済みモデルをロードするかどうか決める
     load = input(colored("Load the trained model? (Y/n): ","yellow", attrs=["bold"]))
     if load == "Y" :

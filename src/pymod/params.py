@@ -14,7 +14,7 @@ class Params(metaclass=ConstMeta) :
     TOTAL_BATCHS_NUM = BATCHS_NUM * YEARS_NUM
     VAL_SIZE         = 10000
     BATCH_SIZE       = 5000
-    VALIDATE_SPAN    = 500
+    VALIDATE_SPAN    = 4000
     EPOCH            = 1
 
     # Feedの形式関連
@@ -39,7 +39,6 @@ class Params(metaclass=ConstMeta) :
     UNITS            = 256
 
     # ファイル保存関連
-
     VERSION          = "v0.7"
     DATA_DIR         = os.path.join(os.path.dirname(__file__), '../../data')
     DIR              = f"{DATA_DIR}/{VERSION}"
