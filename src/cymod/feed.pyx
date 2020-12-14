@@ -15,10 +15,6 @@ from params import Params as p
 cimport numpy as np
 from libcpp cimport bool
 
-class Error(Exception) :
-    def __init__(self):
-        print(colored("Feed.Error : You should select only one learning mode from (main, steal, ready)","red", attrs=["bold"]))
-
 
 cdef class Feed :
     cdef public int i_feed
@@ -43,7 +39,6 @@ cdef class Feed :
 
 
     def __init__(self, int batch_size=0) :
-        if p.MAIN_MODE + p.STEAL_MODE + p.READY_MODE > 1 : raise Error
         self.i_feed  = 1
         self.i_batch = 0
         self.suit  = 0
