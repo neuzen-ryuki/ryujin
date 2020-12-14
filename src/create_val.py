@@ -31,20 +31,24 @@ def create_val() :
     val_sy    = np.zeros((p.VAL_SIZE, p.STEAL_OUTPUT))
     val_ry    = np.zeros((p.VAL_SIZE, p.READY_OUTPUT))
 
-    feed = Feed()
+    feed = Feed(2000)
     dir_components = os.listdir(p.VAL_XML_DIR)
     files = [f for f in dir_components if os.path.isfile(os.path.join(p.VAL_XML_DIR, f))]
     i = 0
     for file_name in files :
+        # xmlを読み込む
         try :
             tree = et.parse(p.VAL_XML_DIR + file_name)
         except :
             print(file_name)
             continue
-
         root = tree.getroot()
+
+        # 1半荘分feedに書き込む
         game = Game(root, file_name, mode, feed=feed)
         game.read_log()
+
+        # 1半荘からランダムな1局面をval_xyに保存
         i_rnd = random.randint(0,(feed.i_batch - 1))
         val_x_m[i]   = feed.feed_x_m[i_rnd]
         val_x_p[i]   = feed.feed_x_p[i_rnd]
@@ -57,6 +61,8 @@ def create_val() :
         val_ry[i]    = feed.feed_ready_y[i_rnd]
         i += 1
         print(f"i: {i}, rnd_i: {i_rnd}")
+
+        # save
         if i == p.VAL_SIZE :
             np.savez(f"{p.VAL_DIR}/val_{mode}",
                      m=val_x_m,
@@ -70,7 +76,9 @@ def create_val() :
                      ry=val_ry)
             print("DONE!")
             break
-        feed.init_feed()
+
+        # feed初期化
+        feed.clear_feed()
 
 
 if __name__ == "__main__" :

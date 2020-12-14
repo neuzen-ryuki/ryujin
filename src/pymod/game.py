@@ -11,13 +11,13 @@ from .mytypes import TileType, ActionType
 
 class Game :
     def __init__(self, xml_root, file_name:str, mode:str, feed=None) :
+        self.xml_root = xml_root
         self.file_name = file_name
         self.mode = mode
-        self.xml_root = xml_root
-        self.i_log = 4
-        self.players = [Player(i) for i in range(4)]
-
         self.feed = feed
+
+        self.players = [Player(i) for i in range(4)]
+        self.i_log = 4
 
 
     # tagによって実行する処理メソッドを切り替える
@@ -40,7 +40,13 @@ class Game :
         elif item.tag    == "BYE"       : self.proc_BYE(int(item.attrib["who"]))
 
 
-    # 学習と同時にfeedを作る時用のgenerator
+    # xml_logをひたすら読んでmodeに応じた情報をfeedに書き込む．create_valで使う．
+    def read_log(self) :
+        for item in self.xml_root[4:] :
+            self.switch_proc(item)
+
+
+    # 学習と同時にfeedを作る時用のgenerator．tensorflowのfitに渡して使う．
     def generate_feed(self) :
         for item in self.xml_root[4:] :
             self.switch_proc(item)
