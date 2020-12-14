@@ -181,8 +181,8 @@ class Game :
         if action == 1 : self.proc_pon(player_num, self.pos , self.tile, self.contain_red)
         elif action in {3, 4, 5} : self.proc_chii(player_num, self.tile, self.tile1, self.tile2)
         elif action == 6 : self.proc_kakan(player_num, self.tile)
-        elif action == 2 : self.proc_daiminkan(player_num, self.tile, self.pos)
         elif action == 7 : self.proc_ankan(player_num, self.tile)
+        elif action == 2 : self.proc_daiminkan(player_num, self.tile, self.pos)
         else :
             print("error! in proc_N()")
             print("unkown mc")
@@ -214,7 +214,7 @@ class Game :
             r  = pt % 3
             pn =  pt // 3
             color = pn // 9
-            self.tile  = (color * 10) + (pn % 9) + 1
+            self.tile = (color * 10) + (pn % 9) + 1
             self.contain_red = False
             if(color != 3 and self.tile % 10 == 5) :
                 if ((mc & 0x0060) == 0) : pass
@@ -229,7 +229,7 @@ class Game :
             r  = pt % 3
             pn =  pt // 3
             color = pn // 9
-            self.tile  = (color * 10) + (pn % 9) + 1
+            self.tile = (color * 10) + (pn % 9) + 1
             return 6
 
         # 大明槓, 暗槓
@@ -239,9 +239,9 @@ class Game :
             r  = pt % 4
             pn =  pt // 4
             color = pn // 9  # 0:萬子,...
-            self.tile  = (color * 10) + (pn % 9) + 1
+            self.tile = (color * 10) + (pn % 9) + 1
             action = 2
-            if(color != 3 and tile % 10 == 5) :
+            if(color != 3 and self.tile % 10 == 5) :
                 if (pos == 0) : action = 7
                 elif (r == 0) : self.tile -= 5
             return action
