@@ -2,6 +2,7 @@
 
 # 3rd
 import numpy as np
+from termcolor import colored
 
 # ours
 from pymod.params import Params as p
@@ -10,13 +11,9 @@ from mytools import fntime
 
 @fntime
 def evaluate():
-    # load data for validation
-    model = create_model()
-    load_name = ""
-    if   p.MAIN_MODE : load_name = "val_main"
-    elif p.MAIN_MODE : load_name = "val_steal"
-    elif p.MAIN_MODE : load_name = "val_ready"
-    val = np.load(f"{p.VAL_DIR}/{load_name}.npz")
+    mode = input(colored("Input the mode. (main, steal, ready): ","yellow", attrs=["bold"]))
+    model = create_model(mode)
+    val = np.load(f"{p.VAL_DIR}/val_{mode}.npz")
     val_x = [val["m"], val["p"], val["s"], val["h"], val["si"], val["aux"]]
     val_y = [val["my"], val["sy"], val["ry"]]
 

@@ -11,11 +11,11 @@ from .params import Params as p
 
 
 # Neural Networkモデルを構築
-def create_model(mode:str) :
+def create_model(mode:str) -> keras.Model :
     ## 学習済みモデルをロードするかどうか決める
     load = input(colored("Load the trained model? (Y/n): ","yellow", attrs=["bold"]))
     if load == "Y" :
-        file_name = input(colored("Input .h5 file name (mode:{mode}) : ","yellow", attrs=["bold"]))
+        file_name = input(colored(f"Input .h5 file name (mode:{mode}) : ","yellow", attrs=["bold"]))
         model = keras.models.load_model(f"{p.SAVED_DIR}/{file_name}")
         return model
     else : print(colored("Creating the model...","yellow", attrs=["bold"]))

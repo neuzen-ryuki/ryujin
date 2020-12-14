@@ -10,8 +10,9 @@ from .mytypes import TileType, ActionType
 
 
 class Game :
-    def __init__(self, xml_root, file_name, feed=None) :
+    def __init__(self, xml_root, file_name:str, mode:str, feed=None) :
         self.file_name = file_name
+        self.mode = mode
         self.xml_root = xml_root
         self.i_log = 4
         self.players = [Player(i) for i in range(4)]
@@ -37,15 +38,6 @@ class Game :
         elif item.tag    == "AGARI"     : self.proc_AGARI(item.attrib)
         elif item.tag    == "RYUUKYOKU" : self.proc_RYUUKYOKU(item.attrib)
         elif item.tag    == "BYE"       : self.proc_BYE(int(item.attrib["who"]))
-
-
-    # xml_logを読み，feedを作成して，npzファイルとして保存する
-    def read_log(self) :
-        for item in self.xml_root[4:] :
-            self.switch_proc(item)
-            if (p.BATCH_SIZE == self.feed.i_batch) and (p.MAIN_MODE or p.STEAL_MODE or p.READY_MODE) :
-                self.feed.save_feed()
-                self.feed.init_feed()
 
 
     # 学習と同時にfeedを作る時用のgenerator
@@ -77,6 +69,14 @@ class Game :
         self.write_flag = False                                 # 鳴き学習用
         self.is_first_turn = False                              # 1巡目かどうか
         self.prevailing_wind = 31 + self.rounds_num             # 場風にあたる牌番号
+
+        # 鳴き用
+        self.tile = -1
+        self.tile1 = -1
+        self.tile2 = -1
+        self.pos = -1
+        self.contain_red = False
+
 
         # Player関係のメンバ変数を初期化
         ten = attr["ten"].split(",")
@@ -111,7 +111,7 @@ class Game :
 
     # T, U, V, Wタグの処理
     def proc_Tsumo(self, player_num, tile) :
-        # 一つ前の打牌で，誰かが鳴けた鳴けたけど鳴かなかった時のfeed_steal_yへの書き込み
+        # 一つ前の打牌で，誰かが鳴けたけど鳴かなかった時のfeed_steal_yへの書き込み
         if self.write_flag :
             self.feed.write_feed_steal(self, self.players, 0)
             self.write_flag = False
@@ -131,7 +131,7 @@ class Game :
         if tile != self.org_got_tile : exchanged = True
 
         # feed_mainへ書き込み
-        if p.MAIN_MODE and not(self.players[player_num].has_declared_ready) and self.players[player_num].exists :
+        if self.mode == "main" and not(self.players[player_num].has_declared_ready) and self.players[player_num].exists :
             self.feed.write_feed_x(self, self.players, player_num)
             self.feed.write_feed_main_y(discarded_tile)
             self.feed.i_batch += 1
@@ -150,7 +150,7 @@ class Game :
         self.steal_flag = False
 
         # feed_stealへ書き込み
-        if p.STEAL_MODE and self.remain_tiles_num > 0 :
+        if self.mode == "steal" and self.remain_tiles_num > 0 :
             # 他のプレイヤが鳴けるかどうか判定する
             action_players_num = 0
             for i in range(1,4) :
@@ -163,18 +163,30 @@ class Game :
 
     # 鳴きの処理
     def proc_N(self, player_num:int, mc:int) :
+        # mcからどんな鳴きが行われたかを判別
         action = self.analyze_mc(player_num, mc)
+
         # feed_steal_xyへの書き込み
         if self.write_flag :
             self.feed.write_feed_steal(self, self.players, action)
             self.write_flag = False
 
+        # 鳴きによる変数処理
+        if action == 1 : self.proc_pon(player_num, self.pos , self.tile, self.contain_red)
+        elif action in {3, 4, 5} : self.proc_chii(player_num, self.tile, self.tile1, self.tile2)
+        elif action == 6 : self.proc_kakan(player_num, self.tile)
+        elif action == 2 : self.proc_daiminkan(player_num, self.tile, self.pos)
+        elif action == 7 : self.proc_ankan(player_num, self.tile)
+        else :
+            print("error! in proc_N()")
+            print("unkown mc")
+            sys.exit()
+
 
     # Nタグについているmコードを解析してそれぞれの鳴きに対する処理をする
-    def analyze_mc(self,player_num:int, mc:int) -> int :
+    def analyze_mc(self, player_num:int, mc:int) -> int :
         # チー
         if  (mc & 0x0004) :
-            action_type = ActionType.STEAL_RUN
             pt = (mc & 0xFC00) >> 10
             r  = pt % 3
             pn = pt // 3
@@ -184,54 +196,49 @@ class Game :
             pp = [(mc & 0x0018) >> 3, (mc & 0x0060) >> 5, (mc & 0x0180) >> 7]
             for i in range(3) :
                 if (run[i] % 10 == 5 and pp[i] == 0) : run[i] -= 5
-            if   r == 0 : tile, tile1, tile2 = run[0], run[1], run[2]
-            elif r == 1 : tile, tile1, tile2 = run[1], run[0], run[2]
-            elif r == 2 : tile, tile1, tile2 = run[2], run[0], run[1]
-            self.proc_chii(player_num, tile, tile1, tile2)
+            if   r == 0 : self.tile, self.tile1, self.tile2 = run[0], run[1], run[2]
+            elif r == 1 : self.tile, self.tile1, self.tile2 = run[1], run[0], run[2]
+            elif r == 2 : self.tile, self.tile1, self.tile2 = run[2], run[0], run[1]
             return 3 + r
 
         # ポン
         elif(mc & 0x0008) :
-            pos = mc & 0x0003
+            self.pos = mc & 0x0003
             pt = (mc & 0xFE00) >> 9
             r  = pt % 3
             pn =  pt // 3
-            color = pn // 9  # 0:萬子,...
-            tile  = (color * 10) + (pn % 9) + 1
-            is_red, contain_red = False, False
-            if(color != 3 and tile % 10 == 5) :
+            color = pn // 9
+            self.tile  = (color * 10) + (pn % 9) + 1
+            self.contain_red = False
+            if(color != 3 and self.tile % 10 == 5) :
                 if ((mc & 0x0060) == 0) : pass
-                elif (r == 0)           : tile -= 5
-                else                    : contain_red = True
-            self.proc_pon(player_num, pos, tile, contain_red)
+                elif (r == 0)           : self.tile -= 5
+                else                    : self.contain_red = True
             return 1
 
         # 加槓
         elif(mc & 0x0010) :
-            pos = mc & 0x0003
+            self.pos = mc & 0x0003
             pt = (mc & 0xFE00) >> 9
             r  = pt % 3
             pn =  pt // 3
-            color = pn // 9  # 0:萬子,...
-            tile  = (color * 10) + (pn % 9) + 1
-            # if(color != 3 and tile % 10 == 5) :
-            #     if ((mc & 0x0060) == 0) : tile -= 5
-            self.proc_kakan(player_num, tile)
+            color = pn // 9
+            self.tile  = (color * 10) + (pn % 9) + 1
             return 6
 
         # 大明槓, 暗槓
         else :
-            pos = mc & 0x0003
+            self.pos = mc & 0x0003
             pt = (mc & 0xFF00) >> 8
             r  = pt % 4
             pn =  pt // 4
             color = pn // 9  # 0:萬子,...
-            tile  = (color * 10) + (pn % 9) + 1
+            self.tile  = (color * 10) + (pn % 9) + 1
+            action = 2
             if(color != 3 and tile % 10 == 5) :
-                if   (pos == 0) : self.proc_ankan(player_num, tile)
-                elif (r == 0)   : self.proc_daiminkan(player_num, (tile - 5), pos)
-                else            : self.proc_daiminkan(player_num, tile, pos)
-            return 2
+                if (pos == 0) : action = 7
+                elif (r == 0) : self.tile -= 5
+            return action
 
 
     # チーが行われた時の処理
