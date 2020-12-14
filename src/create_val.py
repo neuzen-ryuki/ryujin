@@ -6,6 +6,7 @@ import xml.etree.ElementTree as et
 
 # 3rd
 import numpy as np
+from termcolor import colored
 
 # ours
 from pymod.params import Params as p
@@ -17,6 +18,9 @@ from mytools import fntime
 
 @fntime
 def create_val() :
+    # select mode
+    mode = input(colored("Input the mode. (main, steal, ready): ","yellow", attrs=["bold"]))
+
     val_x_m   = np.zeros((p.VAL_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
     val_x_p   = np.zeros((p.VAL_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
     val_x_s   = np.zeros((p.VAL_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
@@ -39,7 +43,7 @@ def create_val() :
             continue
 
         root = tree.getroot()
-        game = Game(root, file_name, feed=feed)
+        game = Game(root, file_name, mode, feed=feed)
         game.read_log()
         i_rnd = random.randint(0,(feed.i_batch - 1))
         val_x_m[i]   = feed.feed_x_m[i_rnd]
@@ -54,11 +58,7 @@ def create_val() :
         i += 1
         print(f"i: {i}, rnd_i: {i_rnd}")
         if i == p.VAL_SIZE :
-            save_name = ""
-            if   p.MAIN_MODE  : save_name = "val_main"
-            elif p.STEAL_MODE : save_name = "val_steal"
-            elif p.READY_MODE : save_name = "val_ready"
-            np.savez(f"{p.VAL_DIR}/{save_name}",
+            np.savez(f"{p.VAL_DIR}/val_{mode}",
                      m=val_x_m,
                      p=val_x_p,
                      s=val_x_s,
