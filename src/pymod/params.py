@@ -9,13 +9,11 @@ class ConstMeta(type):
 
 class Params(metaclass=ConstMeta) :
     # 学習関連
-    YEARS_NUM        = 1
-    BATCHS_NUM       = 16000
-    TOTAL_BATCHS_NUM = BATCHS_NUM * YEARS_NUM
-    VAL_SIZE         = 10000
-    BATCH_SIZE       = 5000
-    VALIDATE_SPAN    = 4000
-    EPOCH            = 1
+    EPOCH            = 2
+    YEARS_NUM        = 9
+    VAL_SIZE         = 50000
+    VALIDATE_SPAN    = 10000
+    BATCH_SIZE       = 3000
 
     # Feedの形式関連
     MPS_ROW          = 9
@@ -27,9 +25,6 @@ class Params(metaclass=ConstMeta) :
     MAIN_OUTPUT      = 38
     STEAL_OUTPUT     = 6
     READY_OUTPUT     = 2
-    MAIN_MODE        = True
-    STEAL_MODE       = False
-    READY_MODE       = False
 
     # モデルのパラメータ数関連
     MPS_CH           = 128
@@ -39,7 +34,7 @@ class Params(metaclass=ConstMeta) :
     UNITS            = 256
 
     # ファイル保存関連
-    VERSION          = "v0.7"
+    VERSION          = "v0.8"
     DATA_DIR         = os.path.join(os.path.dirname(__file__), '../../data')
     DIR              = f"{DATA_DIR}/{VERSION}"
     XML_DIR          = f"{DATA_DIR}/xml"
