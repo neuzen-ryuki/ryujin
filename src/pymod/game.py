@@ -156,7 +156,7 @@ class Game :
         self.steal_flag = False
 
         # 1巡目かどうかの状態を切り替える
-        if remain_tiles_num <= 80 : self.is_first_turn = False
+        if self.remain_tiles_num <= 80 : self.is_first_turn = False
 
         # feed_stealへ書き込み
         if self.mode == "steal" and self.remain_tiles_num > 0 :
