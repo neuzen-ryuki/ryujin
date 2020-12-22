@@ -1,12 +1,13 @@
+.DS_Store
 data/
-test/
-scratch/
-test.py
-scratch*.py
-cprof.py
+cprof*
+scratch*
 *.cpp
 *.c
 *.bak
+*.pkl
+MEMO*
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
