@@ -53,7 +53,7 @@ class Action :
 
     # 槓するかどうか決める
     # TODO ちゃんと書く
-    def decide_to_kan(self, game, players, player_num:int, ankan_tiles:Lits[int], kakan_tiles:List[int]) -> int :
+    def decide_to_kan(self, game, players, player_num:int, ankan_tiles:List[int], kakan_tiles:List[int]) -> int :
         return -1,
 
 
@@ -64,7 +64,7 @@ class Action :
         # 九種九牌をそもそも宣言できるかどうかの判定
         terminals_num = 0
         for i in (TileType.TERMINALS | TileType.HONORS) :
-            if self.hand[i] > 0 :
+            if hand[i] > 0 :
                 terminals_num += 1
 
         # 今はとりあえず流局できたらするようにする

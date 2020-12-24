@@ -63,7 +63,7 @@ class Game :
         self.rotations_num = int(seed[0]) % 4
         self.counters_num = int(seed[1])
         self.deposits_num = int(seed[2])
-        self.remain_tiles_num = 70                              # 山に残っているツモ牌の数
+        self.remain_tiles_num = 84                              # 山に残っているツモ牌の数
         self.org_got_tile = -1                                  # ツモ牌番号保存用
         self.doras = [0] * 5                                    # ドラ
         self.dora_indicators = [0] * 5                          # ドラ表示牌
@@ -73,7 +73,7 @@ class Game :
         self.pao_info = [-1] * 4                                # パオ記録用
         self.steal_flag = False                                 # 手出し記録用
         self.write_flag = False                                 # 鳴き学習用
-        self.is_first_turn = False                              # 1巡目かどうか
+        self.is_first_turn = True                               # 1巡目かどうか
         self.prevailing_wind = 31 + self.rounds_num             # 場風にあたる牌番号
 
         # 鳴き用
@@ -154,6 +154,9 @@ class Game :
         # 鳴いた後に切った場合, 手出し牌に牌を記録
         if self.steal_flag : self.players[player_num].add_tile_to_discard_tiles_after_stealing(discarded_tile)
         self.steal_flag = False
+
+        # 1巡目かどうかの状態を切り替える
+        if self.remain_tiles_num <= 80 : self.is_first_turn = False
 
         # feed_stealへ書き込み
         if self.mode == "steal" and self.remain_tiles_num > 0 :
