@@ -74,7 +74,7 @@ class Action :
 
     # 九種九牌を宣言するかどうか決める
     # TODO ちゃんと書く
-    def decide_to_declare_nine_orphans(self, hand) -> bool :
+    def decide_to_declare_nine_orphans(self, game, players, player_num:int, hand:List[int]) -> bool :
 
         # 九種九牌をそもそも宣言できるかどうかの判定
         terminals_num = 0
