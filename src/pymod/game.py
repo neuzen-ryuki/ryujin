@@ -244,8 +244,9 @@ class Game :
             color = pn // 9  # 0:萬子,...
             self.tile = (color * 10) + (pn % 9) + 1
             if self.pos == 0 : action = 7
-            else : action = 2
-            if(color != 3 and self.tile % 10 == 5 and r == 0) : self.tile -= 5
+            else :
+                action = 2
+                if(color != 3 and self.tile % 10 == 5 and r == 0) : self.tile -= 5
             return action
 
 
