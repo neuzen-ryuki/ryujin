@@ -63,7 +63,7 @@ class Game :
         self.rotations_num = int(seed[0]) % 4
         self.counters_num = int(seed[1])
         self.deposits_num = int(seed[2])
-        self.remain_tiles_num = 84                              # 山に残っているツモ牌の数
+        self.remain_tiles_num = 70                              # 山に残っているツモ牌の数．70: 136-52(配牌)-14(王牌)
         self.org_got_tile = -1                                  # ツモ牌番号保存用
         self.doras = [0] * 5                                    # ドラ
         self.dora_indicators = [0] * 5                          # ドラ表示牌
@@ -156,7 +156,7 @@ class Game :
         self.steal_flag = False
 
         # 1巡目かどうかの状態を切り替える
-        if self.remain_tiles_num <= 80 : self.is_first_turn = False
+        if self.remain_tiles_num <= 66 : self.is_first_turn = False
 
         # feed_stealへ書き込み
         if self.mode == "steal" and self.remain_tiles_num > 0 :
