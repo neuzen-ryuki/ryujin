@@ -208,7 +208,7 @@ class Game :
             if   r == 0 : self.tile, self.tile1, self.tile2 = run[0], run[1], run[2]
             elif r == 1 : self.tile, self.tile1, self.tile2 = run[1], run[0], run[2]
             elif r == 2 : self.tile, self.tile1, self.tile2 = run[2], run[0], run[1]
-            return 3 + r
+            return 5 - r
 
         # ポン
         elif(mc & 0x0008) :
