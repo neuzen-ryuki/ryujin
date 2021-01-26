@@ -49,15 +49,30 @@ class Action :
 
 
     # 鳴くかどうか決める
-    # TODO 赤含みで鳴くかどうかまで決められてない
-    def decide_to_steal(self, game, players, tile, pos, player_num) -> (int, int, int, int, int, int) :
+    # TODO 赤含みで鳴くかどうかまでAIが決められてない．現状赤含みにできたら全て赤含みにしている．
+    # TODO? 一番値が大きかったやつしか返していない．4,3,5,...みたいなときに4(嵌張チー)ができなかったときに3ではなく0を返す．
+    def decide_to_steal(self, game, players, tile, pos, player_num) -> (int, int, int, int, int, int, int, int) :
         self.feed.write_feed_x(game, players, player_num)
         self.feed.write_about_steal_info(tile, pos)
         pred = self.steal_model.predict(self.feed.feed_x)
         self.feed.clear_feed()
 
-        indexes = tuple(np.argsort(-pred[1][0]))
-        return indexes
+        indexes = list(np.argsort(-pred[1][0]))
+        action = indexes[0]
+        tile1, tile2 = -1, -1
+
+        # チーの場合どの牌で鳴くかも返す
+        if action in (3,4,5) :
+            if tile in TileType.REDS : tile += 5
+
+            if   action == 3 : tile1, tile2 = tile - 2, tile - 1
+            elif action == 4 : tile1, tile2 = tile - 1, tile + 1
+            elif action == 5 : tile1, tile2 = tile + 1, tile + 2
+
+            if players[player_num].reds[tile1 // 10] : tile1 -= 5
+            elif players[player_num].reds[tile2 // 10] : tile2 -= 5
+
+        return action, 0, 0, 0, 0, 0, tile1, tile2
 
 
     # リーチするかどうか決める
@@ -74,7 +89,7 @@ class Action :
 
     # 九種九牌を宣言するかどうか決める
     # TODO ちゃんと書く
-    def decide_to_declare_nine_orphans(self, hand) -> bool :
+    def decide_to_declare_nine_orphans(self, game, players, player_num:int, hand:List[int]) -> bool :
 
         # 九種九牌をそもそも宣言できるかどうかの判定
         terminals_num = 0

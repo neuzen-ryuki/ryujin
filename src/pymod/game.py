@@ -63,7 +63,7 @@ class Game :
         self.rotations_num = int(seed[0]) % 4
         self.counters_num = int(seed[1])
         self.deposits_num = int(seed[2])
-        self.remain_tiles_num = 84                              # 山に残っているツモ牌の数
+        self.remain_tiles_num = 70                              # 山に残っているツモ牌の数．70: 136-52(配牌)-14(王牌)
         self.org_got_tile = -1                                  # ツモ牌番号保存用
         self.doras = [0] * 5                                    # ドラ
         self.dora_indicators = [0] * 5                          # ドラ表示牌
@@ -156,7 +156,7 @@ class Game :
         self.steal_flag = False
 
         # 1巡目かどうかの状態を切り替える
-        if self.remain_tiles_num <= 80 : self.is_first_turn = False
+        if self.remain_tiles_num <= 66 : self.is_first_turn = False
 
         # feed_stealへ書き込み
         if self.mode == "steal" and self.remain_tiles_num > 0 :
@@ -208,7 +208,7 @@ class Game :
             if   r == 0 : self.tile, self.tile1, self.tile2 = run[0], run[1], run[2]
             elif r == 1 : self.tile, self.tile1, self.tile2 = run[1], run[0], run[2]
             elif r == 2 : self.tile, self.tile1, self.tile2 = run[2], run[0], run[1]
-            return 3 + r
+            return 5 - r
 
         # ポン
         elif(mc & 0x0008) :
@@ -243,10 +243,10 @@ class Game :
             pn =  pt // 4
             color = pn // 9  # 0:萬子,...
             self.tile = (color * 10) + (pn % 9) + 1
-            action = 2
-            if(color != 3 and self.tile % 10 == 5) :
-                if (self.pos == 0) : action = 7
-                elif (r == 0) : self.tile -= 5
+            if self.pos == 0 : action = 7
+            else :
+                action = 2
+                if(color != 3 and self.tile % 10 == 5 and r == 0) : self.tile -= 5
             return action
 
 
