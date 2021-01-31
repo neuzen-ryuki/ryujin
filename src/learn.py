@@ -31,8 +31,9 @@ def load_feed() :
 # feedを作りながら学習させる時にfitに渡すgenerator
 def generate_feed(mode:str) :
     feed = Feed()
+    game = Game(mode, feed=feed)
     for year in range(2019, (2019-p.YEARS_NUM), -1) :
-        for month in range(1, 12) : # val_dataを作る用に12月のログは使わないようにしている
+        for month in range(1, 12) : # validation用に12月のログは使わないようにしている
             path = f"{p.XML_DIR}/{year}/{month:02}/"
             dir_components = os.listdir(path)
             files = [f for f in dir_components if os.path.isfile(os.path.join(path, f))]
@@ -40,7 +41,7 @@ def generate_feed(mode:str) :
                 try : tree = et.parse(path + file_name)
                 except : continue
                 root = tree.getroot()
-                game = Game(root, file_name, mode, feed=feed)
+                game.init_game()
                 yield from game.generate_feed()
 
 
