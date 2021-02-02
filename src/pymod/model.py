@@ -12,14 +12,6 @@ from .params import Params as p
 
 # Neural Networkモデルを構築
 def create_model(mode:str) -> keras.Model :
-    ## 学習済みモデルをロードするかどうか決める
-    load = input(colored("Load the trained model? (Y/n): ","yellow", attrs=["bold"]))
-    if load == "Y" :
-        file_name = input(colored(f"Input .h5 file name (mode:{mode}) : ","yellow", attrs=["bold"]))
-        model = keras.models.load_model(f"{p.SAVED_DIR}/{file_name}")
-        return model
-    else : print(colored("Creating the model...","yellow", attrs=["bold"]))
-
     ## 数牌処理CNN
     mps_inputs = keras.layers.Input(shape=(p.MPS_ROW, p.COL, p.PLANE), name="mps_input")
     x = layers.Conv2D(p.MPS_CH, (3,2), activation="relu", name="mpsConv1")(mps_inputs)
