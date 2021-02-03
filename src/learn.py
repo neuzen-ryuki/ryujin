@@ -48,15 +48,15 @@ def generate_feed(mode:str) :
 if __name__ ==  "__main__" :
     # create model
     args = sys.argv
-    if len(args) == 3 :
-        if args[1] == "new" and args[2] in {"main", "steal", "ready"} :
-            mode = args[2]
-            model = create_model(mode)
-        elif args[1] == "load" : model = keras.models.load_model(f"{p.SAVED_DIR}/{args[2]}")
+    if len(args) == 3 and args[1] == "new" and args[2] in {"main", "steal", "ready"} :
+        mode = args[2]
+        model = create_model(mode)
+    elif len(args) == 3 and args[1] == "load" :
+        model = keras.models.load_model(f"{p.SAVED_DIR}/{args[2]}")
     else :
-        print(colored("Usage", "green", attrs=["bold"]))
-        print("If you want to create a new model   : " + colored("python learn.py new {\"main\", \"steal\", \"ready\"} ", "yellow", attrs=["bold"]))
-        print("If you want to load a trained model : " + colored("python learn.py load [file_name] ", "yellow", attrs=["bold"]))
+        print(colored("Usage :", "green", attrs=["bold"]))
+        print("    If you want to create a new model   : " + colored("python learn.py new {\"main\", \"steal\", \"ready\"} ", "yellow", attrs=["bold"]))
+        print("    If you want to load a trained model : " + colored("python learn.py load [file_name] ", "yellow", attrs=["bold"]))
         sys.exit()
 
     # load data for validation
