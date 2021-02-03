@@ -10,14 +10,18 @@ from .mytypes import TileType, ActionType
 
 
 class Game :
-    def __init__(self, xml_root, file_name:str, mode:str, feed=None) :
-        self.xml_root = xml_root
-        self.file_name = file_name
+    def __init__(self, mode:str, feed=None) :
         self.mode = mode
         self.feed = feed
-
         self.players = [Player(i) for i in range(4)]
+
+
+    # 半荘を初期化
+    def init_game(self, xml_root, file_name) :
+        self.xml_root = xml_root
+        self.file_name = file_name
         self.i_log = 4
+        for i in range(4) : self.players[i].init_game()
 
 
     # tagによって実行する処理メソッドを切り替える
@@ -44,6 +48,7 @@ class Game :
     def read_log(self) :
         for item in self.xml_root[4:] :
             self.switch_proc(item)
+            if self.mode and p.BATCH_SIZE == self.feed.i_batch : self.feed.init_feed()
 
 
     # 学習と同時にfeedを作る時用のgenerator．tensorflowのfitに渡して使う．

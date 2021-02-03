@@ -1,5 +1,6 @@
 # built-in
 import os
+from termcolor import colored
 import urllib.request
 
 # 3rd
@@ -7,7 +8,7 @@ import urllib.request
 # ours
 from mytools import fntime
 
-
+# TODO 途中で止まってしまうのを修正
 @fntime
 def download_xml(year:str, path:str) -> None :
     # ../data/html/からhtmlファイルを読み込む
