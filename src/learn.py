@@ -46,10 +46,18 @@ def generate_feed(mode:str) :
 
 
 if __name__ ==  "__main__" :
-    # select mode
-    mode = input(colored("Input the mode. (main, steal, ready): ","yellow", attrs=["bold"]))
-    # create
-    model = create_model(mode)
+    # create model
+    args = sys.argv
+    if len(args) == 3 :
+        if args[1] == "new" and args[2] in {"main", "steal", "ready"} :
+            mode = args[2]
+            model = create_model(mode)
+        elif args[1] == "load" : model = keras.models.load_model(f"{p.SAVED_DIR}/{args[2]}")
+    else :
+        print(colored("Usage", "green", attrs=["bold"]))
+        print("If you want to create a new model   : " + colored("python learn.py new {\"main\", \"steal\", \"ready\"} ", "yellow", attrs=["bold"]))
+        print("If you want to load a trained model : " + colored("python learn.py load [file_name] ", "yellow", attrs=["bold"]))
+        sys.exit()
 
     # load data for validation
     val = np.load(f"{p.VAL_DIR}/val_{mode}.npz")
