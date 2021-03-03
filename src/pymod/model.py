@@ -50,7 +50,7 @@ def create_honor_network() :
 # 各モデル共通部分のnetworkを構築
 def create_common_network() :
     m_inputs, p_inputs, s_inputs, m_outputs, p_outputs, s_outputs = create_mps_network()
-    h_inputs, h_outputs = create_mps_network()
+    h_inputs, h_outputs = create_honor_network()
     aux_inputs = keras.layers.Input(shape=(p.AUX_INPUT, ), name="aux_input")
     common_inputs = layers.concatenate([m_outputs, p_outputs, s_outputs, h_outputs, aux_inputs])
     x = layers.Dense(p.COMMON_UNITS1, activation="relu", name="COMMON_MLP")(common_inputs)
