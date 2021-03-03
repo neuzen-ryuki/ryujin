@@ -25,23 +25,23 @@ class Action :
 
         player = players[player_num]
         indexes =np.argsort(-pred[0][0])
-        if player.has_right_to_one_shot : hand = player.hand[:]
         for tile in indexes :
             if (player.hand[tile] > 0) or (tile in TileType.REDS and player.reds[tile // 10] and player.hand[tile+5] > 0) :
-                # 赤5しか持ってないのに黒5を切ろうとするとcontinue
+                # 赤5 1枚しか持ってないのに黒5を切ろうとするとcontinue
                 if tile in TileType.FIVES and player.hand[tile] == 1 and player.reds[tile // 10] : continue
 
                 # 立直宣言したのに聴牌しない打牌をしようとするとcontinue
                 if player.has_right_to_one_shot :
-                    hand[tile] -= 1
-                    shanten_nums = game.shanten_calculator.get_shanten_nums(hand, 0)
-                    hand[tile] += 1
+                    player.hand[tile] -= 1
+                    shanten_nums = game.shanten_calculator.get_shanten_nums(player.hand, 0)
+                    player.hand[tile] += 1
                     ready = False
                     for shanten_num in shanten_nums :
                         if shanten_num <= 0 : ready = True
                     if not(ready) : continue
 
                 # ツモ切りかどうかを判定
+                # TODO 手出し出来る時でも強制ツモ切りしているのでちゃんとNNが選ぶようにしたい
                 if player.last_got_tile == tile : exchanged = False
                 else : exchanged = True
 

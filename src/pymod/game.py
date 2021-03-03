@@ -10,9 +10,10 @@ from .mytypes import TileType, ActionType
 
 
 class Game :
-    def __init__(self, mode:str, feed=None) :
+    def __init__(self, mode:str, sc=None, feed=None) :
         self.mode = mode
         self.feed = feed
+        self.shanten_calculator = sc
         self.players = [Player(i) for i in range(4)]
 
 
@@ -38,7 +39,7 @@ class Game :
         elif item.tag[0] == "G"         : self.proc_Dahai(3, int(item.tag[1:]))
         elif item.tag    == "N"         : self.proc_N(int(item.attrib["who"]), int(item.attrib["m"]))
         elif item.tag    == "INIT"      : self.proc_INIT(item.attrib)
-        elif item.tag    == "REACH"     : self.proc_REACH(item.attrib)
+        elif item.tag    == "REACH"     : self.proc_REACH(int(item.attrib["who"]), item.attrib["step"])
         elif item.tag    == "AGARI"     : self.proc_AGARI(item.attrib)
         elif item.tag    == "RYUUKYOKU" : self.proc_RYUUKYOKU(item.attrib)
         elif item.tag    == "BYE"       : self.proc_BYE(int(item.attrib["who"]))
@@ -51,7 +52,7 @@ class Game :
             if self.mode and p.BATCH_SIZE == self.feed.i_batch : self.feed.init_feed()
 
 
-    # 学習と同時にfeedを作る時用のgenerator．tensorflowのfitに渡して使う．
+    # 学習と同時にfeedを作る時用のgenerator
     def generate_feed(self) :
         for item in self.xml_root[4:] :
             self.switch_proc(item)
@@ -80,6 +81,7 @@ class Game :
         self.write_flag = False                                 # 鳴き学習用
         self.is_first_turn = True                               # 1巡目かどうか
         self.prevailing_wind = 31 + self.rounds_num             # 場風にあたる牌番号
+        self.ready_flag = False                                 # 立直宣言したかどうか
 
         # 鳴き用
         self.tile = -1
@@ -136,6 +138,15 @@ class Game :
 
     # D, E, F, Gタグの処理
     def proc_Dahai(self, player_num, tile) :
+        # feed_readyへ書き込み
+        if self.mode == "ready" and self.players[player_num].exists :
+            shanten_nums = self.shanten_calculator(self.players[player_num].hand, 0)
+            ready = False
+            if shanten_nums[0] <= 0 or shanten_nums[1] <= 0 or shanten_nums[2] <= 0 :
+                self.feed.write_feed_x(self, self.players, player_num)
+                self.feed.write_feed_ready_y(1 if self.ready_flag else 0)
+                self.feed.i_batch += 1
+
         if tile in {16, 52, 88} : self.appearing_red_tiles[tile // 36] = True
         discarded_tile = self.convert_tile(tile)
         exchanged = False
@@ -315,10 +326,11 @@ class Game :
 
 
     # リーチ時の処理
-    def proc_REACH(self, attr) :
-        if attr["step"] == "2" :
-            player_num, step = int(attr["who"]), attr["step"]
+    def proc_REACH(self, player_num:int, step:str) -> None :
+        if step == "1" :
             self.ready_flag = True
+        if step == "2" :
+            self.ready_flag = False
             self.deposits_num += 1
             self.players[player_num].declare_ready(self.is_first_turn)
 

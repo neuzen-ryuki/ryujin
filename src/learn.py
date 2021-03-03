@@ -15,6 +15,7 @@ from pymod.params import Params as p
 from pymod.game import Game
 from pymod.model import create_model
 from cymod.feed import Feed
+from cymod.shanten import ShantenNumCalculator
 
 
 # 一旦feedを作ってから学習させる時にfitに渡すgenerator
@@ -31,7 +32,8 @@ def load_feed() :
 # feedを作りながら学習させる時にfitに渡すgenerator
 def generate_feed(mode:str) :
     feed = Feed()
-    game = Game(mode, feed=feed)
+    shanten_calculator = ShantenNumCalculator()
+    game = Game(mode, sc=shanten_calculator ,feed=feed)
     for year in range(2019, (2019-p.YEARS_NUM), -1) :
         for month in range(1, 12) : # validation用に12月のログは使わないようにしている
             path = f"{p.XML_DIR}/{year}/{month:02}/"
