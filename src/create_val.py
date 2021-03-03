@@ -13,6 +13,7 @@ from pymod.params import Params as p
 from pymod.game import Game
 from pymod.player import Player
 from cymod.feed import Feed
+from cymod.shanten import ShantenNumCalculator
 from mytools import fntime
 
 
@@ -32,6 +33,8 @@ def create_val() :
     val_ry    = np.zeros((p.VAL_SIZE, p.READY_OUTPUT))
 
     feed = Feed(2000)
+    shanten_calculator = ShantenNumCalculator()
+    game = Game(mode, sc=shanten_calculator, feed=feed)
     dir_components = os.listdir(p.VAL_XML_DIR)
     files = [f for f in dir_components if os.path.isfile(os.path.join(p.VAL_XML_DIR, f))]
     i = 0
@@ -45,10 +48,11 @@ def create_val() :
         root = tree.getroot()
 
         # 1半荘分feedに書き込む
-        game = Game(root, file_name, mode, feed=feed)
+        game.init_game(root, file_name)
         game.read_log()
 
         # 1半荘からランダムな1局面をval_xyに保存
+        if feed.i_batch == 0 : continue
         i_rnd = random.randint(0,(feed.i_batch - 1))
         val_x_m[i]   = feed.feed_x_m[i_rnd]
         val_x_p[i]   = feed.feed_x_p[i_rnd]

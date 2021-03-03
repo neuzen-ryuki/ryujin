@@ -31,7 +31,7 @@ def load_feed() :
 
 # feedを作りながら学習させる時にfitに渡すgenerator
 def generate_feed(mode:str) :
-    feed = Feed()
+    feed = Feed(mode=mode, batch_size=p.BATCH_SIZE)
     shanten_calculator = ShantenNumCalculator()
     game = Game(mode, sc=shanten_calculator ,feed=feed)
     for year in range(2019, (2019-p.YEARS_NUM), -1) :
@@ -43,7 +43,7 @@ def generate_feed(mode:str) :
                 try : tree = et.parse(path + file_name)
                 except : continue
                 root = tree.getroot()
-                game.init_game()
+                game.init_game(root, file_name)
                 yield from game.generate_feed()
 
 
@@ -75,14 +75,21 @@ if __name__ ==  "__main__" :
 
     # learning
     # 途中でgenerate_feed()がfeedを吐かなくなってもsaveするようtry-exceptで制御
-    try :
-        model.fit(
-            generate_feed(mode),
-            validation_data=(val_x, val_y),
-            steps_per_epoch=p.VALIDATE_SPAN,
-            epochs=(p.TOTAL_BATCHS_NUM // p.VALIDATE_SPAN) * p.EPOCH,
-            verbose=1,
-            callbacks=[cbf1, cbf2])
-    except : pass
+    # try :
+    #     model.fit(
+    #         generate_feed(mode),
+    #         validation_data=(val_x, val_y),
+    #         steps_per_epoch=p.VALIDATE_SPAN,
+    #         epochs=(p.TOTAL_BATCHS_NUM // p.VALIDATE_SPAN) * p.EPOCH,
+    #         verbose=1,
+    #         callbacks=[cbf1, cbf2])
+    # except : pass
+    model.fit(
+        generate_feed(mode),
+        validation_data=(val_x, val_y),
+        steps_per_epoch=p.VALIDATE_SPAN,
+        epochs=(p.TOTAL_BATCHS_NUM // p.VALIDATE_SPAN) * p.EPOCH,
+        verbose=1,
+        callbacks=[cbf1, cbf2])
     model.save(saved_file_name)
 

@@ -135,16 +135,23 @@ class Game :
         self.players[player_num].reset_same_turn_furiten()
         self.players[player_num].get_tile(self.convert_tile(tile))
 
+    # リーチできるかどうかの判定
+    def can_declare_ready(self, game) :
+        if self.has_stealed or self.has_declared_ready or game.remain_tiles_num < 4 : return False
+        shanten_nums = game.shanten_calculator.get_shanten_nums(self.hand, self.opened_sets_num)
+        for s in shanten_nums :
+            if s <= 0 : return True
+
 
     # D, E, F, Gタグの処理
     def proc_Dahai(self, player_num, tile) :
+        player = self.players[player_num]
         # feed_readyへ書き込み
-        if self.mode == "ready" and self.players[player_num].exists :
-            shanten_nums = self.shanten_calculator(self.players[player_num].hand, 0)
-            ready = False
+        if self.mode == "ready" and player.exists and not(player.has_stealed) and not(player.has_declared_ready) and self.remain_tiles_num :
+            shanten_nums = self.shanten_calculator.get_shanten_nums(player.hand, player.opened_sets_num)
             if shanten_nums[0] <= 0 or shanten_nums[1] <= 0 or shanten_nums[2] <= 0 :
                 self.feed.write_feed_x(self, self.players, player_num)
-                self.feed.write_feed_ready_y(1 if self.ready_flag else 0)
+                self.feed.write_feed_y(1 if self.ready_flag else 0)
                 self.feed.i_batch += 1
 
         if tile in {16, 52, 88} : self.appearing_red_tiles[tile // 36] = True
@@ -153,13 +160,13 @@ class Game :
         if tile != self.org_got_tile : exchanged = True
 
         # feed_mainへ書き込み
-        if self.mode == "main" and not(self.players[player_num].has_declared_ready) and self.players[player_num].exists :
+        if self.mode == "main" and not(player.has_declared_ready) and player.exists :
             self.feed.write_feed_x(self, self.players, player_num)
             self.feed.write_feed_main_y(discarded_tile)
             self.feed.i_batch += 1
 
         # プレイヤが牌を切る
-        self.players[player_num].discard_tile(discarded_tile, exchanged)
+        player.discard_tile(discarded_tile, exchanged)
 
         # 捨てられた牌を見えている牌に記録
         self.add_to_appearing_tiles(discarded_tile)
@@ -168,7 +175,7 @@ class Game :
         for i in range(1, 4) : self.players[(player_num + i) % 4].add_same_turn_furiten_tile(discarded_tile)
 
         # 鳴いた後に切った場合, 手出し牌に牌を記録
-        if self.steal_flag : self.players[player_num].add_tile_to_discard_tiles_after_stealing(discarded_tile)
+        if self.steal_flag : player.add_tile_to_discard_tiles_after_stealing(discarded_tile)
         self.steal_flag = False
 
         # 1巡目かどうかの状態を切り替える

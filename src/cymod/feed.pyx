@@ -17,6 +17,7 @@ from libcpp cimport bool
 
 
 cdef class Feed :
+    cdef public str mode
     cdef public int i_feed
     cdef public int i_batch
     cdef public int batch_size
@@ -25,7 +26,7 @@ cdef class Feed :
     cdef public int start
     cdef public int end
     cdef public list feed_x
-    cdef public list feed_y
+    cdef public np.ndarray feed_y
     cdef public int[5] steal_info
     cdef public np.ndarray feed_x_m
     cdef public np.ndarray feed_x_p
@@ -38,7 +39,8 @@ cdef class Feed :
     cdef public np.ndarray feed_ready_y
 
 
-    def __init__(self, int batch_size=0) :
+    def __init__(self, mode, batch_size) :
+        self.mode = mode
         self.i_feed  = 1
         self.i_batch = 0
         self.suit  = 0
@@ -59,15 +61,17 @@ cdef class Feed :
         self.feed_x_p   = np.zeros((self.batch_size, p.MPS_ROW,   p.COL, p.PLANE))
         self.feed_x_s   = np.zeros((self.batch_size, p.MPS_ROW,   p.COL, p.PLANE))
         self.feed_x_h   = np.zeros((self.batch_size, p.HONOR_ROW, p.COL, p.PLANE))
-        self.feed_x_si  = np.zeros((self.batch_size, p.SI_INPUT)) # si means "steal info"
         self.feed_x_aux = np.zeros((self.batch_size, p.AUX_INPUT))
-        self.feed_x     = [self.feed_x_m, self.feed_x_p, self.feed_x_s, self.feed_x_h, self.feed_x_si, self.feed_x_aux]
+        if self.mode == "steal" :
+            self.feed_x_si = np.zeros((self.batch_size, p.SI_INPUT)) # si means "steal info"
+            self.feed_x = [self.feed_x_m, self.feed_x_p, self.feed_x_s, self.feed_x_h, self.feed_x_si, self.feed_x_aux]
+        else :
+            self.feed_x = [self.feed_x_m, self.feed_x_p, self.feed_x_s, self.feed_x_h, self.feed_x_aux]
 
         # 正解ラベルfeed
-        self.feed_main_y  = np.zeros((self.batch_size, p.MAIN_OUTPUT))
-        self.feed_steal_y = np.zeros((self.batch_size, p.STEAL_OUTPUT))
-        self.feed_ready_y = np.zeros((self.batch_size, p.READY_OUTPUT))
-        self.feed_y       = [self.feed_main_y, self.feed_steal_y, self.feed_ready_y]
+        if   self.mode == "main"  : self.feed_y = np.zeros((self.batch_size, p.MAIN_OUTPUT))
+        elif self.mode == "steal" : self.feed_y = np.zeros((self.batch_size, p.STEAL_OUTPUT))
+        elif self.mode == "ready" : self.feed_y = np.zeros((self.batch_size, p.READY_OUTPUT))
 
         self.i_batch = 0
 
@@ -75,7 +79,7 @@ cdef class Feed :
     # feed, i_batchをゼロクリア
     cpdef clear_feed(self) :
         for x in self.feed_x : x[:] = 0
-        for y in self.feed_y : y[:] = 0
+        self.feed_y[:] = 0
         self.i_batch = 0
 
 
@@ -301,4 +305,9 @@ cdef class Feed :
     # feed_y(ready)に正解ラベルを書き込む
     cpdef write_feed_ready_y(self, int ready) :
         self.feed_ready_y[self.i_batch,ready] = 1
+
+    # feed_yに正解ラベルを書き込む
+    cpdef write_feed_y(self, int i) :
+        self.feed_y[self.i_batch,i] = 1
+
 

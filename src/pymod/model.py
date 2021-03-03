@@ -85,7 +85,7 @@ def create_steal_model() -> keras.Model :
     x = layers.BatchNormalization(name="STEAL_OUT_BN")(x)
     steal_outputs = layers.Dense(p.STEAL_OUTPUT, activation="softmax", name="steal_output")(x)
 
-    model = keras.Model(inputs=[m_inputs, p_inputs, s_inputs, h_inputs, aux_inputs], outputs=steal_outputs)
+    model = keras.Model(inputs=[m_inputs, p_inputs, s_inputs, h_inputs, aux_inputs, steal_info], outputs=steal_outputs)
     return model
 
 
@@ -99,6 +99,7 @@ def create_ready_model() -> keras.Model :
     ready_outputs = layers.Dense(p.READY_OUTPUT, activation="softmax", name="ready_output")(x)
 
     model = keras.Model(inputs=[m_inputs, p_inputs, s_inputs, h_inputs, aux_inputs], outputs=ready_outputs)
+    # model = keras.Model(inputs=[m_inputs, p_inputs, s_inputs, h_inputs, aux_inputs], outputs=common_outputs)
     return model
 
 
