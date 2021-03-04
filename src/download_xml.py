@@ -1,7 +1,8 @@
 # built-in
+import sys
 import os
-from termcolor import colored
 import urllib.request
+from termcolor import colored
 
 # 3rd
 
@@ -38,15 +39,14 @@ def download_xml(year:str, path:str) -> None :
                 req = urllib.request.Request(url)
                 with urllib.request.urlopen(req) as res:
                     body = res.read()
-                    # ファイルを保存
                     fw.write(body)
                     fw.close()
+
         fr.close()
 
-
 if __name__ == "__main__" :
-    year = input(colored("Input year which you want to download : ","yellow", attrs=["bold"]))
+    args = sys.argv
+    if len(args) == 2 : year = args[1]
+    else : print("Usage : " + colored("python download_xml.py {year}", "yellow", attrs=["bold"]))
     path = f"../data/html/{year}/"
-
     download_xml(year, path)
-

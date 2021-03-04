@@ -73,23 +73,14 @@ if __name__ ==  "__main__" :
                                            monitor="val_loss")
     cbf2 = keras.callbacks.CSVLogger(f"{p.RESULT_DIR}/result_history.csv")
 
-    # learning
-    # 途中でgenerate_feed()がfeedを吐かなくなってもsaveするようtry-exceptで制御
-    # try :
-    #     model.fit(
-    #         generate_feed(mode),
-    #         validation_data=(val_x, val_y),
-    #         steps_per_epoch=p.VALIDATE_SPAN,
-    #         epochs=(p.TOTAL_BATCHS_NUM // p.VALIDATE_SPAN) * p.EPOCH,
-    #         verbose=1,
-    #         callbacks=[cbf1, cbf2])
-    # except : pass
-    model.fit(
-        generate_feed(mode),
-        validation_data=(val_x, val_y),
-        steps_per_epoch=p.VALIDATE_SPAN,
-        epochs=(p.TOTAL_BATCHS_NUM // p.VALIDATE_SPAN) * p.EPOCH,
-        verbose=1,
-        callbacks=[cbf1, cbf2])
-    model.save(saved_file_name)
-
+    learning
+    途中でgenerate_feed()がfeedを吐かなくなってもsaveするようtry-exceptで制御
+    try :
+        model.fit(
+            generate_feed(mode),
+            validation_data=(val_x, val_y),
+            steps_per_epoch=p.VALIDATE_SPAN,
+            epochs=(p.TOTAL_BATCHS_NUM // p.VALIDATE_SPAN) * p.EPOCH,
+            verbose=1,
+            callbacks=[cbf1, cbf2])
+    except : pass
