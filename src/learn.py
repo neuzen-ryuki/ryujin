@@ -34,17 +34,19 @@ def generate_feed(mode:str) :
     feed = Feed(mode=mode, batch_size=p.BATCH_SIZE)
     shanten_calculator = ShantenNumCalculator()
     game = Game(mode, sc=shanten_calculator ,feed=feed)
-    for year in range(2019, (2019-p.YEARS_NUM), -1) :
-        for month in range(1, 12) : # validation用に12月のログは使わないようにしている
-            path = f"{p.XML_DIR}/{year}/{month:02}/"
-            dir_components = os.listdir(path)
-            files = [f for f in dir_components if os.path.isfile(os.path.join(path, f))]
-            for file_name in files :
-                try : tree = et.parse(path + file_name)
-                except : continue
-                root = tree.getroot()
-                game.init_game(root, file_name)
-                yield from game.generate_feed()
+    for epoch in range(p.EPOCH) :
+        for year in range(2019, (2019-p.YEARS_NUM), -1) :
+            print(colored(f"epoch:{epoch:05d}, year:{year}", "green", attrs=["bold"]))
+            for month in range(1, 12) : # validation用に12月のログは使わないようにしている
+                path = f"{p.XML_DIR}/{year}/{month:02}/"
+                dir_components = os.listdir(path)
+                files = [f for f in dir_components if os.path.isfile(os.path.join(path, f))]
+                for file_name in files :
+                    try : tree = et.parse(path + file_name)
+                    except : continue
+                    root = tree.getroot()
+                    game.init_game(root, file_name)
+                    yield from game.generate_feed()
 
 
 if __name__ ==  "__main__" :
@@ -57,14 +59,15 @@ if __name__ ==  "__main__" :
         model = keras.models.load_model(f"{p.SAVED_DIR}/{args[2]}")
     else :
         print(colored("Usage :", "green", attrs=["bold"]))
-        print("    If you want to create a new model   : " + colored("python learn.py new {\"main\", \"steal\", \"ready\"} ", "yellow", attrs=["bold"]))
-        print("    If you want to load a trained model : " + colored("python learn.py load [file_name] ", "yellow", attrs=["bold"]))
+        print("    If you want to create a new model   : " + colored("$ python learn.py new {\"main\", \"steal\", \"ready\"} ", "yellow"))
+        print("    If you want to load a trained model : " + colored("$ python learn.py load [file_name] ", "yellow"))
         sys.exit()
 
     # load data for validation
     val = np.load(f"{p.VAL_DIR}/val_{mode}.npz")
-    val_x = [val["m"], val["p"], val["s"], val["h"], val["si"], val["aux"]]
-    val_y = [val["my"], val["sy"], val["ry"]]
+    if mode == "steal" : val_x = [val["m"], val["p"], val["s"], val["h"], val["si"], val["aux"]]
+    val_x = [val["m"], val["p"], val["s"], val["h"], val["aux"]]
+    val_y = val["y"]
 
     # setting up learning records
     try : os.makedirs(p.SAVED_DIR)
@@ -82,8 +85,17 @@ if __name__ ==  "__main__" :
             generate_feed(mode),
             validation_data=(val_x, val_y),
             steps_per_epoch=p.VALIDATE_SPAN,
-            epochs=(p.TOTAL_BATCHS_NUM // p.VALIDATE_SPAN) * p.EPOCH,
+            epochs=p.ENDLESS,
             verbose=1,
             callbacks=[cbf1, cbf2])
     except : pass
     model.save(saved_file_name)
+
+    ## for debug
+    # model.fit(
+    #     generate_feed(mode),
+    #     validation_data=(val_x, val_y),
+    #     steps_per_epoch=p.VALIDATE_SPAN,
+    #     epochs=p.ENDLESS,
+    #     verbose=1,
+    #     callbacks=[cbf1, cbf2])

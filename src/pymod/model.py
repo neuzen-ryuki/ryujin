@@ -1,4 +1,5 @@
 # sys
+import os
 import sys
 
 # 3rd
@@ -99,7 +100,6 @@ def create_ready_model() -> keras.Model :
     ready_outputs = layers.Dense(p.READY_OUTPUT, activation="softmax", name="ready_output")(x)
 
     model = keras.Model(inputs=[m_inputs, p_inputs, s_inputs, h_inputs, aux_inputs], outputs=ready_outputs)
-    # model = keras.Model(inputs=[m_inputs, p_inputs, s_inputs, h_inputs, aux_inputs], outputs=common_outputs)
     return model
 
 
@@ -108,7 +108,6 @@ def create_model(mode:str) -> keras.Model :
     if   mode == "main"  : model = create_main_model()
     elif mode == "steal" : model = create_steal_model()
     elif mode == "ready" : model = create_ready_model()
-
 
     try : os.makedirs(p.RESULT_DIR)
     except : pass
