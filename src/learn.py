@@ -73,8 +73,8 @@ if __name__ ==  "__main__" :
                                            monitor="val_loss")
     cbf2 = keras.callbacks.CSVLogger(f"{p.RESULT_DIR}/result_history.csv")
 
-    learning
-    途中でgenerate_feed()がfeedを吐かなくなってもsaveするようtry-exceptで制御
+    # learning
+    # 途中でgenerate_feed()がfeedを吐かなくなってもsaveするようtry-exceptで制御
     try :
         model.fit(
             generate_feed(mode),
