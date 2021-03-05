@@ -18,9 +18,10 @@ from mytools import fntime
 
 
 @fntime
-def create_val() :
-    # select mode
-    mode = input(colored("Input the mode. (main, steal, ready): ","yellow", attrs=["bold"]))
+def create_val(mode ) :
+    if   mode == "main"  : outputs_num = p.MAIN_OUTPUT
+    elif mode == "steal" : outputs_num = p.STEAL_OUTPUT
+    elif mode == "ready" : outputs_num = p.READY_OUTPUT
 
     val_x_m   = np.zeros((p.VAL_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
     val_x_p   = np.zeros((p.VAL_SIZE, p.MPS_ROW,   p.COL, p.PLANE))
@@ -28,11 +29,9 @@ def create_val() :
     val_x_h   = np.zeros((p.VAL_SIZE, p.HONOR_ROW, p.COL, p.PLANE))
     val_x_si  = np.zeros((p.VAL_SIZE, p.SI_INPUT))
     val_x_aux = np.zeros((p.VAL_SIZE, p.AUX_INPUT))
-    val_my    = np.zeros((p.VAL_SIZE, p.MAIN_OUTPUT))
-    val_sy    = np.zeros((p.VAL_SIZE, p.STEAL_OUTPUT))
-    val_ry    = np.zeros((p.VAL_SIZE, p.READY_OUTPUT))
+    val_y     = np.zeros((p.VAL_SIZE, outputs_num))
 
-    feed = Feed(2000)
+    feed = Feed(mode, 2000)
     shanten_calculator = ShantenNumCalculator()
     game = Game(mode, sc=shanten_calculator, feed=feed)
     dir_components = os.listdir(p.VAL_XML_DIR)
@@ -60,9 +59,7 @@ def create_val() :
         val_x_h[i]   = feed.feed_x_h[i_rnd]
         val_x_si[i]  = feed.feed_x_si[i_rnd]
         val_x_aux[i] = feed.feed_x_aux[i_rnd]
-        val_my[i]    = feed.feed_main_y[i_rnd]
-        val_sy[i]    = feed.feed_steal_y[i_rnd]
-        val_ry[i]    = feed.feed_ready_y[i_rnd]
+        val_y[i]     = feed.feed_y[i_rnd]
         i += 1
         print(f"i: {i}, rnd_i: {i_rnd}")
 
@@ -75,9 +72,7 @@ def create_val() :
                      h=val_x_h,
                      si=val_x_si,
                      aux=val_x_aux,
-                     my=val_my,
-                     sy=val_sy,
-                     ry=val_ry)
+                     y=val_y)
             print("DONE!")
             break
 
@@ -86,4 +81,9 @@ def create_val() :
 
 
 if __name__ == "__main__" :
-    create_val()
+    args = sys.argv
+    if len(args) == 2 : mode = args[1]
+    else :
+        print("Usage : " + colored("$ python create_val.py {mode}", "yellow"))
+        sys.exit()
+    create_val(mode)

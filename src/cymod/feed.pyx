@@ -62,8 +62,8 @@ cdef class Feed :
         self.feed_x_s   = np.zeros((self.batch_size, p.MPS_ROW,   p.COL, p.PLANE))
         self.feed_x_h   = np.zeros((self.batch_size, p.HONOR_ROW, p.COL, p.PLANE))
         self.feed_x_aux = np.zeros((self.batch_size, p.AUX_INPUT))
+        self.feed_x_si = np.zeros((self.batch_size, p.SI_INPUT)) # si means "steal info"
         if self.mode == "steal" :
-            self.feed_x_si = np.zeros((self.batch_size, p.SI_INPUT)) # si means "steal info"
             self.feed_x = [self.feed_x_m, self.feed_x_p, self.feed_x_s, self.feed_x_h, self.feed_x_si, self.feed_x_aux]
         else :
             self.feed_x = [self.feed_x_m, self.feed_x_p, self.feed_x_s, self.feed_x_h, self.feed_x_aux]

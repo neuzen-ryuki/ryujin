@@ -54,6 +54,8 @@ def download_xml(year:str, path:str) -> None :
 if __name__ == "__main__" :
     args = sys.argv
     if len(args) == 2 : year = args[1]
-    else : print("Usage : " + colored("python download_xml.py {year}", "yellow", attrs=["bold"]))
+    else :
+        print("Usage : " + colored("$ python download_xml.py {year}", "yellow"))
+        sys.exit()
     path = f"../data/html/{year}/"
     download_xml(year, path)

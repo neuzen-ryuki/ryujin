@@ -24,7 +24,7 @@ cdef class ShantenNumCalculator :
     cdef int sets_num
     cdef int[38] hand
 
-    def __init__(self, str file_path="../data/shanten_table.pkl", bool record_mode=False, bool st_mode=True) :
+    def __init__(self, str file_path="../data/shanten_table.pkl", bool record_mode=False, bool st_mode=False) :
         self.file_path = file_path
         self.record_mode = record_mode
         self.st_mode = st_mode
