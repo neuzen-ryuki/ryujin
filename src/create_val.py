@@ -65,6 +65,8 @@ def create_val(mode ) :
 
         # save
         if i == p.VAL_SIZE :
+            try : os.makedirs(p.VAL_DIR)
+            except : pass
             np.savez(f"{p.VAL_DIR}/val_{mode}",
                      m=val_x_m,
                      p=val_x_p,

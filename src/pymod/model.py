@@ -109,6 +109,9 @@ def create_model(mode:str) -> keras.Model :
     elif mode == "steal" : model = create_steal_model()
     elif mode == "ready" : model = create_ready_model()
 
+
+    try : os.makedirs(p.RESULT_DIR)
+    except : pass
     keras.utils.plot_model(model, f"{p.RESULT_DIR}/ryujin_model.png", show_shapes=True)
 
     model.compile(

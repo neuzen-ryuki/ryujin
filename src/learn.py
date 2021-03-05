@@ -67,7 +67,9 @@ if __name__ ==  "__main__" :
     val_y = [val["my"], val["sy"], val["ry"]]
 
     # setting up learning records
-    saved_file_name = p.SAVED_DIR + "/{epoch:02d}-{val_loss:.6f}.h5"
+    try : os.makedirs(p.SAVED_DIR)
+    except : pass
+    saved_file_name = p.SAVED_DIR + "/{epoch:06d}-{val_loss:.6f}.h5"
     cbf1 = keras.callbacks.ModelCheckpoint(filepath=saved_file_name,
                                            save_weights_only=False,
                                            monitor="val_loss")
@@ -84,3 +86,4 @@ if __name__ ==  "__main__" :
             verbose=1,
             callbacks=[cbf1, cbf2])
     except : pass
+    model.save(saved_file_name)
