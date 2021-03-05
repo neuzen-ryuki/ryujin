@@ -9,7 +9,6 @@ from termcolor import colored
 # ours
 from mytools import fntime
 
-# TODO 途中で止まってしまうのを修正
 @fntime
 def download_xml(year:str, path:str) -> None :
     # ../data/html/からhtmlファイルを読み込む
@@ -37,12 +36,20 @@ def download_xml(year:str, path:str) -> None :
                 # xmlを取得するリクエストを送る
                 url = f"http://tenhou.net/0/log/?{log_id}"
                 req = urllib.request.Request(url)
-                with urllib.request.urlopen(req) as res:
-                    body = res.read()
-                    fw.write(body)
-                    fw.close()
-
+                success = False
+                fault_count = 0
+                while not success and fault_count < 3 : # 3回失敗するまで再トライ
+                    try :
+                        with urllib.request.urlopen(req) as res:
+                            body = res.read()
+                            fw.write(body)
+                            fw.close()
+                        success = True
+                    except :
+                        print(f"can\'t get {log_id}")
+                        fault_count += 1
         fr.close()
+
 
 if __name__ == "__main__" :
     args = sys.argv
