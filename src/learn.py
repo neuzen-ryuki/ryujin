@@ -36,7 +36,8 @@ def generate_feed(mode:str) :
     game = Game(mode, sc=shanten_calculator ,feed=feed)
     for epoch in range(p.EPOCH) :
         for year in range(2019, (2019-p.YEARS_NUM), -1) :
-            print(colored(f"epoch:{epoch:05d}, year:{year}", "green", attrs=["bold"]))
+            print("")
+            print(colored(f"epoch:{epoch}, year:{year}", "green", attrs=["bold"]))
             for month in range(1, 12) : # validation用に12月のログは使わないようにしている
                 path = f"{p.XML_DIR}/{year}/{month:02}/"
                 dir_components = os.listdir(path)
@@ -65,14 +66,18 @@ if __name__ ==  "__main__" :
 
     # load data for validation
     val = np.load(f"{p.VAL_DIR}/val_{mode}.npz")
-    if mode == "steal" : val_x = [val["m"], val["p"], val["s"], val["h"], val["si"], val["aux"]]
-    val_x = [val["m"], val["p"], val["s"], val["h"], val["aux"]]
-    val_y = val["y"]
+    if mode == "steal" : val_x = [val["m"], val["p"], val["s"], val["h"], val["aux"], val["si"]]
+    val_x = [val["m"][:p.VAL_SIZE],
+             val["p"][:p.VAL_SIZE],
+             val["s"][:p.VAL_SIZE],
+             val["h"][:p.VAL_SIZE],
+             val["aux"][:p.VAL_SIZE]]
+    val_y = val["y"][:p.VAL_SIZE]
 
     # setting up learning records
     try : os.makedirs(p.SAVED_DIR)
     except : pass
-    saved_file_name = p.SAVED_DIR + "/{epoch:06d}-{val_loss:.6f}.h5"
+    saved_file_name = p.SAVED_DIR + "/{epoch}-{val_loss:.6f}.h5"
     cbf1 = keras.callbacks.ModelCheckpoint(filepath=saved_file_name,
                                            save_weights_only=False,
                                            monitor="val_loss")

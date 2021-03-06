@@ -37,6 +37,7 @@ def create_val(mode ) :
     dir_components = os.listdir(p.VAL_XML_DIR)
     files = [f for f in dir_components if os.path.isfile(os.path.join(p.VAL_XML_DIR, f))]
     i = 0
+    total_situation_num = 0
     for file_name in files :
         # xmlを読み込む
         try :
@@ -51,6 +52,7 @@ def create_val(mode ) :
         game.read_log()
 
         # 1半荘からランダムな1局面をval_xyに保存
+        total_situation_num += feed.i_batch
         if feed.i_batch == 0 : continue
         i_rnd = random.randint(0,(feed.i_batch - 1))
         val_x_m[i]   = feed.feed_x_m[i_rnd]
@@ -80,6 +82,8 @@ def create_val(mode ) :
 
         # feed初期化
         feed.clear_feed()
+
+    print(total_situation_num)
 
 
 if __name__ == "__main__" :
