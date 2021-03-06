@@ -50,6 +50,6 @@ class Params(metaclass=ConstMeta) :
     VAL_XML_DIR      = f"{XML_DIR}/val/"
 
     # モデル関連
-    MAIN_MODEL       = SAVED_DIR + ""
-    STEAL_MODEL      = SAVED_DIR + ""
-    READY_MODEL      = SAVED_DIR + ""
+    MAIN_MODEL       = SAVED_DIR + "/main/"  + ""
+    STEAL_MODEL      = SAVED_DIR + "/steal/" + ""
+    READY_MODEL      = SAVED_DIR + "/ready/" + ""

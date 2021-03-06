@@ -76,9 +76,9 @@ if __name__ ==  "__main__" :
     val_y = val["y"][:p.VAL_SIZE]
 
     # setting up learning records
-    try : os.makedirs(p.SAVED_DIR)
+    try : os.makedirs(p.SAVED_DIR + f"/{mode}")
     except : pass
-    saved_file_name = p.SAVED_DIR + "/{epoch}-{val_loss:.6f}.h5"
+    saved_file_name = p.SAVED_DIR + f"/{mode}/" + "{epoch}-{val_loss:.6f}.h5"
     cbf1 = keras.callbacks.ModelCheckpoint(filepath=saved_file_name,
                                            save_weights_only=False,
                                            monitor="val_loss")
