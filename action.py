@@ -12,16 +12,21 @@ from .src.cymod.feed import Feed
 
 class Action :
     def __init__(self) :
+        self.main_feed = Feed("main", 1)
         self.main_model  = create_model("main")
+
+        self.steal_feed = Feed("steal", 1)
         self.steal_model = create_model("steal")
-        self.feed = Feed(1)
+
+        self.ready_feed = Feed("ready", 1)
+        self.ready_model = create_model("ready")
 
 
     # 切る牌を決める
     def decide_which_tile_to_discard(self, game, players, player_num) -> (int, bool) :
-        self.feed.write_feed_x(game, players, player_num)
-        pred = self.main_model.predict(self.feed.feed_x)
-        self.feed.clear_feed()
+        self.main_feed.write_feed_x(game, players, player_num)
+        pred = self.main_model.predict(self.main_feed.feed_x)
+        self.main_feed.clear_feed()
 
         player = players[player_num]
         indexes =np.argsort(-pred[0][0])
@@ -52,10 +57,10 @@ class Action :
     # TODO 赤含みで鳴くかどうかまでAIが決められてない．現状赤含みにできたら全て赤含みにしている．
     # TODO? 一番値が大きかったやつしか返していない．4,3,5,...みたいなときに4(嵌張チー)ができなかったときに3ではなく0を返す．
     def decide_to_steal(self, game, players, tile, pos, player_num) -> (int, int, int, int, int, int, int, int) :
-        self.feed.write_feed_x(game, players, player_num)
-        self.feed.write_about_steal_info(tile, pos)
-        pred = self.steal_model.predict(self.feed.feed_x)
-        self.feed.clear_feed()
+        self.steal_feed.write_feed_x(game, players, player_num)
+        self.steal_feed.write_about_steal_info(tile, pos)
+        pred = self.steal_model.predict(self.steal_feed.feed_x)
+        self.steal_feed.clear_feed()
 
         indexes = list(np.argsort(-pred[1][0]))
         action = indexes[0]
@@ -76,8 +81,13 @@ class Action :
 
 
     # リーチするかどうか決める
-    # TODO ちゃんと書く
     def decide_to_declare_ready(self, game, players, player_num) -> bool :
+        self.ready_feed.write_feed_x(game, players, player_num)
+        pred = self.main_model.predict(self.ready_feed.feed_x)
+        self.ready_feed.clear_feed()
+        indexes = pred[0][0]
+
+        if indexes[0] > indexes[1] : return False
         return True
 
 

@@ -162,7 +162,7 @@ class Game :
         # feed_mainへ書き込み
         if self.mode == "main" and not(player.has_declared_ready) and player.exists :
             self.feed.write_feed_x(self, self.players, player_num)
-            self.feed.write_feed_main_y(discarded_tile)
+            self.feed.write_feed_y(discarded_tile)
             self.feed.i_batch += 1
 
         # プレイヤが牌を切る

@@ -63,10 +63,9 @@ cdef class Feed :
         self.feed_x_h   = np.zeros((self.batch_size, p.HONOR_ROW, p.COL, p.PLANE))
         self.feed_x_aux = np.zeros((self.batch_size, p.AUX_INPUT))
         self.feed_x_si = np.zeros((self.batch_size, p.SI_INPUT)) # si means "steal info"
+        self.feed_x = [self.feed_x_m, self.feed_x_p, self.feed_x_s, self.feed_x_h, self.feed_x_aux]
         if self.mode == "steal" :
-            self.feed_x = [self.feed_x_m, self.feed_x_p, self.feed_x_s, self.feed_x_h, self.feed_x_si, self.feed_x_aux]
-        else :
-            self.feed_x = [self.feed_x_m, self.feed_x_p, self.feed_x_s, self.feed_x_h, self.feed_x_aux]
+            self.feed_x.append(self.feed_x_si)
 
         # 正解ラベルfeed
         if   self.mode == "main"  : self.feed_y = np.zeros((self.batch_size, p.MAIN_OUTPUT))
@@ -98,15 +97,15 @@ cdef class Feed :
         if self.steal_info[2] >= 0 :
             self.write_feed_x(game, players, self.steal_info[2])
             self.write_about_steal_info(self.steal_info[4], self.steal_info[3])
-            if action in {1,2} : self.write_feed_steal_y(action)
-            else : self.write_feed_steal_y(0)
+            if action in {1,2} : self.write_feed_y(action)
+            else : self.write_feed_y(0)
             self.i_batch += 1
 
         if self.steal_info[0] >= 0 and not(action in {1,2}) and self.i_batch < p.BATCH_SIZE :
             self.write_feed_x(game, players, self.steal_info[0])
             self.write_about_steal_info(self.steal_info[4], self.steal_info[1])
-            if action in {3, 4, 5} : self.write_feed_steal_y(action)
-            else : self.write_feed_steal_y(0)
+            if action in {3, 4, 5} : self.write_feed_y(action)
+            else : self.write_feed_y(0)
             self.i_batch += 1
 
         self.steal_info = [-1] * 5

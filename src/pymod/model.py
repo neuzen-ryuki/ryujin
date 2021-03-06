@@ -120,3 +120,12 @@ def create_model(mode:str) -> keras.Model :
 
     return model
 
+
+def load_model(mode:str) -> keras.Model :
+    if   mode == "main"  : model = keras.models.load_model(p.MAIN_MODEL)
+    elif mode == "steal" : model = keras.models.load_model(p.STEAL_MODEL)
+    elif mode == "ready" : model = keras.models.load_model(p.READY_MODEL)
+
+    return model
+
+
