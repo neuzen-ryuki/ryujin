@@ -14,13 +14,13 @@ from .src.cymod.feed import Feed
 class Action :
     def __init__(self) :
         self.main_feed = Feed("main", 1)
-        self.main_model  = create_model("main")
+        self.main_model  = load_model("main")
 
         self.steal_feed = Feed("steal", 1)
-        self.steal_model = create_model("steal")
+        self.steal_model = load_model("steal")
 
         self.ready_feed = Feed("ready", 1)
-        self.ready_model = create_model("ready")
+        self.ready_model = load_model("ready")
 
 
     # 切る牌を決める
