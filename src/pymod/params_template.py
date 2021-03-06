@@ -6,7 +6,7 @@ import sys
 
 class ConstMeta(type):
     def __setattr__(self, name, value):
-        if name in self.__dict__: raise TypeError(f'Can\'t rebind const ({name})')
+        if name in self.__dict__: raise TypeError(f"Can\'t rebind const ({name})")
         else: self.__setattr__(name, value)
 
 
@@ -39,7 +39,7 @@ class Params(metaclass=ConstMeta) :
 
     # ファイル保存関連
     VERSION          = "temp"
-    DATA_DIR         = os.path.join(os.path.dirname(__file__), '../../data')
+    DATA_DIR         = os.path.join(os.path.dirname(__file__), "../../data")
     DIR              = f"{DATA_DIR}/{VERSION}"
     XML_DIR          = f"{DATA_DIR}/xml"
     FEED_DIR         = f"{DIR}/feed"

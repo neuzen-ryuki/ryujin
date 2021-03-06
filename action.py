@@ -29,7 +29,7 @@ class Action :
         self.main_feed.clear_feed()
 
         player = players[player_num]
-        indexes =np.argsort(-pred[0][0])
+        indexes =np.argsort(-pred[0])
         for tile in indexes :
             if (player.hand[tile] > 0) or (tile in TileType.REDS and player.reds[tile // 10] and player.hand[tile+5] > 0) :
                 # 赤5 1枚しか持ってないのに黒5を切ろうとするとcontinue
@@ -62,7 +62,7 @@ class Action :
         pred = self.steal_model.predict(self.steal_feed.feed_x)
         self.steal_feed.clear_feed()
 
-        indexes = list(np.argsort(-pred[1][0]))
+        indexes = list(np.argsort(-pred[0]))
         action = indexes[0]
         tile1, tile2 = -1, -1
 
@@ -85,7 +85,7 @@ class Action :
         self.ready_feed.write_feed_x(game, players, player_num)
         pred = self.main_model.predict(self.ready_feed.feed_x)
         self.ready_feed.clear_feed()
-        indexes = pred[0][0]
+        indexes = pred[0]
 
         if indexes[0] > indexes[1] : return False
         return True
