@@ -13,7 +13,7 @@ from termcolor import colored
 # ours
 from pymod.params import Params as p
 from pymod.game import Game
-from pymod.model import create_model
+from pymod.model import create_model, load_model
 from cymod.feed import Feed
 from cymod.shanten import ShantenNumCalculator
 
@@ -57,11 +57,12 @@ if __name__ ==  "__main__" :
         mode = args[2]
         model = create_model(mode)
     elif len(args) == 3 and args[1] == "load" :
-        model = keras.models.load_model(f"{p.SAVED_DIR}/{args[2]}")
+        mode = args[2]
+        model = load_model(mode)
     else :
         print(colored("Usage :", "green", attrs=["bold"]))
         print("    If you want to create a new model   : " + colored("$ python learn.py new {\"main\", \"steal\", \"ready\"} ", "yellow"))
-        print("    If you want to load a trained model : " + colored("$ python learn.py load [file_name] ", "yellow"))
+        print("    If you want to load a trained model : " + colored("$ python learn.py load {\"main\", \"steal\", \"ready\"} ", "yellow"))
         sys.exit()
 
     # load data for validation
