@@ -26,7 +26,7 @@ class Player :
         self.opened_reds = [False] * 3                    # 副露牌に赤が含まれているか
         self.discarded_tiles = []                         # 河
         self.discarded_tiles_hist = [0] * 38              # 枚数だけ記録する河
-        self.discarded_state = []                         # D:ツモ切り，d:手出し , i:"D" ==> discarded_tiles[i]はツモ切られた牌
+        self.discarded_state = []                         # True:手出し，False:ツモ切り， i:False ==> discarded_tiles[i]はツモ切られた牌
         self.furiten_tiles = [0] * 38                     # フリテン牌 furiten_tiles[i] > 0 ==> i番の牌は既に自分で切っているか同巡に切られた牌
         self.same_turn_furiten_tiles = []                 # 同巡に切られた牌
 
@@ -70,6 +70,7 @@ class Player :
         # 河への記録
         self.discarded_state += [exchanged]
         self.discarded_tiles += [discarded_tile]
+        self.discarded_tiles_hist[discarded_tile] += 1
 
         # 赤牌を番号に変換
         if discarded_tile in TileType.REDS :
@@ -80,8 +81,6 @@ class Player :
         self.hand[discarded_tile] -= 1
         # 切る牌をフリテン牌に記録する
         self.furiten_tiles[discarded_tile] += 1
-        # 枚数だけ記録する河に切る牌を記録する
-        self.discarded_tiles_hist[discarded_tile] += 1
 
         # 流し満貫継続中かどうかチェック
         if self.has_right_to_nagashi_mangan and not(discarded_tile in (TileType.TERMINALS | TileType.HONORS)) :

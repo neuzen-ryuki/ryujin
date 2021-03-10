@@ -62,15 +62,19 @@ cdef class Feed :
         self.feed_x_s   = np.zeros((self.batch_size, p.MPS_ROW,   p.COL, p.PLANE))
         self.feed_x_h   = np.zeros((self.batch_size, p.HONOR_ROW, p.COL, p.PLANE))
         self.feed_x_aux = np.zeros((self.batch_size, p.AUX_INPUT))
-        self.feed_x_si = np.zeros((self.batch_size, p.SI_INPUT)) # si means "steal info"
         self.feed_x = [self.feed_x_m, self.feed_x_p, self.feed_x_s, self.feed_x_h, self.feed_x_aux]
         if self.mode == "steal" :
+            self.feed_x_si  = np.zeros((self.batch_size, p.SI_INPUT)) # si means "steal info"
             self.feed_x.append(self.feed_x_si)
+        if self.mode == "read" :
+            self.feed_x_riv = np.zeros((self.batch_size, p.RIV_INPUT)) # riv means "river"
+            self.feed_x.append(self.feed_x_riv)
 
         # 正解ラベルfeed
         if   self.mode == "main"  : self.feed_y = np.zeros((self.batch_size, p.MAIN_OUTPUT))
         elif self.mode == "steal" : self.feed_y = np.zeros((self.batch_size, p.STEAL_OUTPUT))
         elif self.mode == "ready" : self.feed_y = np.zeros((self.batch_size, p.READY_OUTPUT))
+        elif self.mode == "read"  : self.feed_y = np.zeros((self.batch_size, p.READ_OUTPUT))
 
         self.i_batch = 0
 
@@ -289,6 +293,20 @@ cdef class Feed :
             i += 1
             if players[player_num].has_right_to_one_shot : self.feed_x_aux[self.i_batch,i] = 1
             i += 1
+
+
+    # feedに相手の河の情報を書き込む
+    cpdef write_about_opponents_river(self, game, players, int player_num) :
+        cdef int i, j, tile
+        cdef bool state
+
+        tiles = players[target_player_num].discarded_tiles
+        states = players[target_player_num].discarded_state
+        hists = players[target_player_num].discarded_hists[:]
+        for i, (tile, state) in enumerate(zip(tiles, state)) :
+            hists[tile] -= 1
+            index = i * 304 + (tile if state else tile + 152) + (hists[tile] * 38)
+            self.feed_x_riv[self.i_batch, index] = 1
 
 
     # feed_y(main)に正解ラベルを書き込む
