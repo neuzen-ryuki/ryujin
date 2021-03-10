@@ -1,4 +1,5 @@
 # sys
+import sys
 from typing import List
 
 # 3rd
@@ -13,13 +14,13 @@ from .src.cymod.feed import Feed
 class Action :
     def __init__(self) :
         self.main_feed = Feed("main", 1)
-        self.main_model  = create_model("main")
+        self.main_model  = load_model("main")
 
         self.steal_feed = Feed("steal", 1)
-        self.steal_model = create_model("steal")
+        self.steal_model = load_model("steal")
 
         self.ready_feed = Feed("ready", 1)
-        self.ready_model = create_model("ready")
+        self.ready_model = load_model("ready")
 
 
     # 切る牌を決める
@@ -29,7 +30,7 @@ class Action :
         self.main_feed.clear_feed()
 
         player = players[player_num]
-        indexes =np.argsort(-pred[0])
+        indexes = np.argsort(-pred[0])
         for tile in indexes :
             if (player.hand[tile] > 0) or (tile in TileType.REDS and player.reds[tile // 10] and player.hand[tile+5] > 0) :
                 # 赤5 1枚しか持ってないのに黒5を切ろうとするとcontinue
@@ -62,7 +63,7 @@ class Action :
         pred = self.steal_model.predict(self.steal_feed.feed_x)
         self.steal_feed.clear_feed()
 
-        indexes = list(np.argsort(-pred[0]))
+        indexes = np.argsort(-pred[0])
         action = indexes[0]
         tile1, tile2 = -1, -1
 
@@ -85,21 +86,20 @@ class Action :
         self.ready_feed.write_feed_x(game, players, player_num)
         pred = self.main_model.predict(self.ready_feed.feed_x)
         self.ready_feed.clear_feed()
-        indexes = pred[0]
 
-        if indexes[0] > indexes[1] : return False
+        if pred[0][0] > pred[0][1] : return False
         return True
 
 
     # 槓するかどうか決める
     # TODO ちゃんと書く
-    def decide_to_kan(self, game, players, player_num:int, ankan_tiles:List[int], kakan_tiles:List[int]) -> int :
+    def decide_to_kan(self, game, players, player_num, ankan_tiles, kakan_tiles) -> int :
         return -1,
 
 
     # 九種九牌を宣言するかどうか決める
     # TODO ちゃんと書く
-    def decide_to_declare_nine_orphans(self, game, players, player_num:int, hand:List[int]) -> bool :
+    def decide_to_declare_nine_orphans(self, game, players, player_num, hand) -> bool :
 
         # 九種九牌をそもそも宣言できるかどうかの判定
         terminals_num = 0
@@ -115,7 +115,7 @@ class Action :
 
     # 和了るかどうか決める
     # TODO ちゃんと書く
-    def decide_win(self, game, players, player_num:int) -> True :
+    def decide_win(self, game, players, player_num) -> True :
         return True
 
 
