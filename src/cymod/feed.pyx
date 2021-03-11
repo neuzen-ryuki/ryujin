@@ -334,19 +334,9 @@ cdef class Feed :
     cpdef write_about_sseq(self, game, players, int player_num) : pass
 
 
-    # feed_y(main)に正解ラベルを書き込む
-    cpdef write_feed_main_y(self, int discarded_tile) :
-        self.feed_main_y[self.i_batch,discarded_tile] = 1
+    # feed_yに正解の手牌を書き込む for read mode
+    cpdef write_feed_y_for_read_mode(self, game, players, int player_num) : pass
 
-
-    # feed_y(steal)に正解ラベルを書き込む
-    cpdef write_feed_steal_y(self, int steal_type) :
-        self.feed_steal_y[self.i_batch,steal_type] = 1
-
-
-    # feed_y(ready)に正解ラベルを書き込む
-    cpdef write_feed_ready_y(self, int ready) :
-        self.feed_ready_y[self.i_batch,ready] = 1
 
     # feed_yに正解ラベルを書き込む
     cpdef write_feed_y(self, int i) :

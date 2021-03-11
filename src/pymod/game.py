@@ -124,7 +124,7 @@ class Game :
 
     # T, U, V, Wタグの処理
     def proc_Tsumo(self, player_num, tile) :
-        # 一つ前の打牌で，誰かが鳴けたけど鳴かなかった時のfeed_steal_yへの書き込み
+        # 一つ前の打牌で，誰かが鳴けたけど鳴かなかった時のfeed__yへの書き込み
         if self.write_flag :
             self.feed.write_feed_steal(self, self.players, 0)
             self.write_flag = False
