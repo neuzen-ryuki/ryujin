@@ -56,21 +56,36 @@ cdef class Feed :
 
     # feedを初期化
     cpdef init_feed(self) :
-        # 入力に使うfeed
-        self.feed_x_m   = np.zeros((self.batch_size, p.MPS_ROW,   p.COL, p.PLANE))
-        self.feed_x_p   = np.zeros((self.batch_size, p.MPS_ROW,   p.COL, p.PLANE))
-        self.feed_x_s   = np.zeros((self.batch_size, p.MPS_ROW,   p.COL, p.PLANE))
-        self.feed_x_h   = np.zeros((self.batch_size, p.HONOR_ROW, p.COL, p.PLANE))
-        self.feed_x_aux = np.zeros((self.batch_size, p.AUX_INPUT))
-        self.feed_x = [self.feed_x_m, self.feed_x_p, self.feed_x_s, self.feed_x_h, self.feed_x_aux]
-        if self.mode == "steal" :
-            self.feed_x_si  = np.zeros((self.batch_size, p.SI_INPUT)) # si means "steal info"
-            self.feed_x.append(self.feed_x_si)
-        if self.mode == "read" :
-            self.feed_x_riv = np.zeros((self.batch_size, p.RIV_INPUT)) # riv means "river"
-            self.feed_x.append(self.feed_x_riv)
+        # 入力feed
+        self.feed_x_m    = np.zeros((self.batch_size, p.MPS_ROW,   p.COL, p.PLANE)) # m means "manzu"
+        self.feed_x_p    = np.zeros((self.batch_size, p.MPS_ROW,   p.COL, p.PLANE)) # p means "pinzu"
+        self.feed_x_s    = np.zeros((self.batch_size, p.MPS_ROW,   p.COL, p.PLANE)) # s means "souzu"
+        self.feed_x_h    = np.zeros((self.batch_size, p.HONOR_ROW, p.COL, p.PLANE)) # h means "honor"
+        self.feed_x_aux  = np.zeros((self.batch_size, p.AUX_INPUT))                 # aux means "auxiliary"
+        self.feed_x_si   = np.zeros((self.batch_size, p.SI_INPUT))                  # si means "steal information"
+        self.feed_x_riv  = np.zeros((self.batch_size, p.RIV_INPUT))                 # riv means "river:discarded tiles"
+        self.feed_x_sseq = np.zeros((self.batch_size, p.SSEQ_INPUT))                # sseq means "steal sequences"
+        self.feed_x_atls = np.zeros((self.batch_size, p.ATLS_INPUT))                # atls means "appearing tiles"
 
-        # 正解ラベルfeed
+        if self.mode in {"main", "ready"} :
+            self.feed_x = [self.feed_x_m,
+                           self.feed_x_p,
+                           self.feed_x_s,
+                           self.feed_x_h,
+                           self.feed_x_aux]
+        elif self.mode == "steal" :
+            self.feed_x = [self.feed_x_m,
+                           self.feed_x_p,
+                           self.feed_x_s,
+                           self.feed_x_h,
+                           self.feed_x_aux,
+                           self.feed_x_si]
+        if self.mode == "read" :
+            self.feed_x = [self.feed_x_riv,
+                           self.feed_x_sseq,
+                           self.feed_x_aux]
+
+        # 出力feed
         if   self.mode == "main"  : self.feed_y = np.zeros((self.batch_size, p.MAIN_OUTPUT))
         elif self.mode == "steal" : self.feed_y = np.zeros((self.batch_size, p.STEAL_OUTPUT))
         elif self.mode == "ready" : self.feed_y = np.zeros((self.batch_size, p.READY_OUTPUT))
@@ -86,11 +101,25 @@ cdef class Feed :
         self.i_batch = 0
 
 
-    # 鳴きに関する情報を一旦書き込んで保存する
-    cpdef write_steal_info(self, int player_num, int tile, int pos, int i) :
-        self.steal_info[4] = tile
-        self.steal_info[i * 2] = player_num
-        self.steal_info[i * 2 + 1] = pos
+    # feed_xに情報を書き込む
+    cpdef write_feed_x(self, game, players, int player_num) :
+    cdef int suit
+
+        player = players[player_num]
+        for suit in range(4) :
+            self.suit, self.plane = suit, 0
+            if suit == 3 : self.start, self.end = 31, 38
+            else         : self.start, self.end = suit*10+1, (suit+1)*10
+
+            self.write_about_hand(player.hand)
+            self.write_about_opened_hand(player.opened_hand)
+            self.write_about_appearing_tiles(game.appearing_tiles, player.hand)
+            self.write_about_enemy_players(players, player_num)
+            self.write_about_doras(game.doras, game.dora_has_opened)
+            if suit == 3 : self.write_about_winds(game.rounds_num, player.players_wind)
+            else         : self.write_about_reds(player.reds, player.opened_reds)
+
+        self.write_about_aux(game, players, player_num)
 
 
     # 鳴きに関するfeed_x,yを書き込む
@@ -115,25 +144,19 @@ cdef class Feed :
         self.steal_info = [-1] * 5
 
 
-    # feed_xに情報を書き込む
-    cpdef write_feed_x(self, game, players, int player_num) :
-        cdef int suit
-
-        player = players[player_num]
-        for suit in range(4) :
-            self.suit, self.plane = suit, 0
-            if suit == 3 : self.start, self.end = 31, 38
-            else         : self.start, self.end = suit*10+1, (suit+1)*10
-
-            self.write_about_hand(player.hand)
-            self.write_about_opened_hand(player.opened_hand)
-            self.write_about_appearing_tiles(game.appearing_tiles, player.hand)
-            self.write_about_enemy_players(players, player_num)
-            self.write_about_doras(game.doras, game.dora_has_opened)
-            if suit == 3 : self.write_about_winds(game.rounds_num, player.players_wind)
-            else         : self.write_about_reds(player.reds, player.opened_reds)
-
+    # 手牌読みに関するfeed_x,yを書き込む
+    cpdef write_feed_read(self, game, players, int player_num) :
+        self.write_about_riv(game, players, player_num)
+        self.write_about_sseq(game, players, player_num)
+        self.write_about_atls(game, players, player_num)
         self.write_about_aux(game, players, player_num)
+
+
+    # 鳴きに関する情報を一旦書き込んで保存する
+    cpdef write_steal_info(self, int player_num, int tile, int pos, int i) :
+        self.steal_info[4] = tile
+        self.steal_info[i * 2] = player_num
+        self.steal_info[i * 2 + 1] = pos
 
 
     # 1行を書き込む
@@ -236,7 +259,7 @@ cdef class Feed :
         self.plane += 1
 
 
-    # feedに鳴きの付属情報を書き込む
+    # feedに鳴きの付属情報（出た牌，出た場所）を書き込む
     cpdef write_about_steal_info(self, int tile, int pos) :
         cdef int i
         i = 0
@@ -295,18 +318,20 @@ cdef class Feed :
             i += 1
 
 
-    # feedに相手の河の情報を書き込む
-    cpdef write_about_opponents_river(self, game, players, int player_num) :
+    # feedに河の情報を書き込む
+    cpdef write_about_riv(self, game, players, int player_num) :
         cdef int i, j, tile
         cdef bool state
 
         tiles = players[target_player_num].discarded_tiles
         states = players[target_player_num].discarded_state
-        hists = players[target_player_num].discarded_hists[:]
         for i, (tile, state) in enumerate(zip(tiles, state)) :
-            hists[tile] -= 1
-            index = i * 304 + (tile if state else tile + 152) + (hists[tile] * 38)
+            index = i * 304 + (tile if state else tile + 152)
             self.feed_x_riv[self.i_batch, index] = 1
+
+
+    # feedに鳴き（手牌読み用）の情報を書き込む
+    cpdef write_about_sseq(self, game, players, int player_num) : pass
 
 
     # feed_y(main)に正解ラベルを書き込む
