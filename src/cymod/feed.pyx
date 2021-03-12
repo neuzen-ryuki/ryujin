@@ -65,7 +65,6 @@ cdef class Feed :
         self.feed_x_si   = np.zeros((self.batch_size, p.SI_INPUT))                  # si means "steal information"
         self.feed_x_riv  = np.zeros((self.batch_size, p.RIV_INPUT))                 # riv means "river:discarded tiles"
         self.feed_x_sseq = np.zeros((self.batch_size, p.SSEQ_INPUT))                # sseq means "steal sequences"
-        self.feed_x_atls = np.zeros((self.batch_size, p.ATLS_INPUT))                # atls means "appearing tiles"
 
         if self.mode in {"main", "ready"} :
             self.feed_x = [self.feed_x_m,
@@ -148,7 +147,6 @@ cdef class Feed :
     cpdef write_feed_read(self, game, players, int player_num) :
         self.write_about_riv(game, players, player_num)
         self.write_about_sseq(game, players, player_num)
-        self.write_about_atls(game, players, player_num)
         self.write_about_aux(game, players, player_num)
 
 
@@ -320,22 +318,71 @@ cdef class Feed :
 
     # feedに河の情報を書き込む
     cpdef write_about_riv(self, game, players, int player_num) :
-        cdef int i, j, tile
+        cdef int i, tile, col
         cdef bool state
 
         tiles = players[target_player_num].discarded_tiles
         states = players[target_player_num].discarded_state
         for i, (tile, state) in enumerate(zip(tiles, state)) :
             index = i * 304 + (tile if state else tile + 152)
-            self.feed_x_riv[self.i_batch, index] = 1
+            self.feed_x_riv[self.i_batch, col] = 1
 
 
     # feedに鳴き（手牌読み用）の情報を書き込む
-    cpdef write_about_sseq(self, game, players, int player_num) : pass
+    cpdef write_about_sseq(self, game, players, int player_num) :
+        cdef int i, tile, col
+
+        hand = [0] * 38
+        displayed_hand = players[player_num].displayed_hand
+        for i in range(0,20,5) :
+            if displayed_hand[i] == 0 : break
+            tile = displayed_hand[i+1]
+            elif displayed_hand[i] == BlockType.OPENED_TRIPLET : hand[tile] += 3
+            elif displayed_hand[i] == BlockType.OPENED_RUN :
+                hand[tile] += 1
+                hand[tile+1] += 1
+                hand[tile+2] += 1
+            else : hand[tile] += 4
+
+        col = 0
+        for i in range(1,38) :
+            if i % 10 == 0 : continue
+            elif hand[i] == 0 :
+                col += 4
+                continue
+            elif hand[i] == 1 : self.feed_x_sseq[self.i_batch, col] = 1
+            elif hand[i] == 2 : self.feed_x_sseq[self.i_batch, col:col+1] = 1
+            elif hand[i] == 3 : self.feed_x_sseq[self.i_batch, col:col+2] = 1
+            elif hand[i] == 4 : self.feed_x_sseq[self.i_batch, col:col+3] = 1
+            else :
+                print("Error in feed.write_about_sseq()")
+                sys.exit()
+            col += 4
+
+        for i in range(0,20,5) :
+            if displayed_hand[i] != 0 : self.feed_x_sseq[self.i_batch, col+displayed_hand[i+4]] = 1
+            col += 38
 
 
     # feed_yに正解の手牌を書き込む for read mode
-    cpdef write_feed_y_for_read_mode(self, game, players, int player_num) : pass
+    cpdef write_feed_y_for_read_mode(self, game, players, int player_num) :
+        cdef int i, col
+
+        hand = players[player_num].hand
+        col = 0
+        for i in range(1,38) :
+            if i % 10 == 0 : continue
+            elif hand[i] == 0 :
+                col += 4
+                continue
+            elif hand[i] == 1 : self.feed_y[self.i_batch, col] = 1
+            elif hand[i] == 2 : self.feed_y[self.i_batch, col:col+1] = 1
+            elif hand[i] == 3 : self.feed_y[self.i_batch, col:col+2] = 1
+            elif hand[i] == 4 : self.feed_y[self.i_batch, col:col+3] = 1
+            else :
+                print("Error in feed.write_feed_y_for_read_mode()")
+                sys.exit()
+            col += 4
 
 
     # feed_yに正解ラベルを書き込む
