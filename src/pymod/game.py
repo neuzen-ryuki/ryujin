@@ -47,9 +47,7 @@ class Game :
 
     # xml_logをひたすら読んでmodeに応じた情報をfeedに書き込む．create_valで使う．
     def read_log(self) :
-        for item in self.xml_root[4:] :
-            self.switch_proc(item)
-            if self.mode and p.BATCH_SIZE == self.feed.i_batch : self.feed.init_feed()
+        for item in self.xml_root[4:] : self.switch_proc(item)
 
 
     # 学習と同時にfeedを作る時用のgenerator
@@ -146,13 +144,6 @@ class Game :
     # D, E, F, Gタグの処理
     def proc_Dahai(self, player_num, tile) :
         player = self.players[player_num]
-        # feed_readyへ書き込み
-        if self.mode == "ready" and player.exists and not(player.has_stealed) and not(player.has_declared_ready) and self.remain_tiles_num :
-            shanten_nums = self.shanten_calculator.get_shanten_nums(player.hand, player.opened_sets_num)
-            if shanten_nums[0] <= 0 or shanten_nums[1] <= 0 or shanten_nums[2] <= 0 :
-                self.feed.write_feed_x(self, self.players, player_num)
-                self.feed.write_feed_y(1 if self.ready_flag else 0)
-                self.feed.i_batch += 1
 
         if tile in {16, 52, 88} : self.appearing_red_tiles[tile // 36] = True
         discarded_tile = self.convert_tile(tile)
@@ -162,7 +153,8 @@ class Game :
         # feed_mainへ書き込み
         if self.mode == "main" and not(player.has_declared_ready) and player.exists :
             self.feed.write_feed_x(self, self.players, player_num)
-            self.feed.write_feed_y(discarded_tile)
+            self.feed.write_feed_y_main(discarded_tile)
+            self.feed.write_feed_y_ready(1 if self.ready_flag else 0)
             self.feed.i_batch += 1
 
         # プレイヤが牌を切る

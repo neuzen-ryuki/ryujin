@@ -26,17 +26,23 @@ cdef class Feed :
     cdef public int start
     cdef public int end
     cdef public list feed_x
-    cdef public np.ndarray feed_y
+    cdef public list feed_y
     cdef public int[5] steal_info
     cdef public np.ndarray feed_x_m
     cdef public np.ndarray feed_x_p
     cdef public np.ndarray feed_x_s
     cdef public np.ndarray feed_x_h
-    cdef public np.ndarray feed_x_si
     cdef public np.ndarray feed_x_aux
-    cdef public np.ndarray feed_main_y
-    cdef public np.ndarray feed_steal_y
-    cdef public np.ndarray feed_ready_y
+    cdef public np.ndarray feed_x_ep1
+    cdef public np.ndarray feed_x_ep2
+    cdef public np.ndarray feed_x_ep3
+    cdef public np.ndarray feed_x_si
+    cdef public np.ndarray feed_y_main
+    cdef public np.ndarray feed_y_ready
+    cdef public np.ndarray feed_y_ep1
+    cdef public np.ndarray feed_y_ep2
+    cdef public np.ndarray feed_y_ep3
+    cdef public np.ndarray feed_y_steal
 
 
     def __init__(self, mode, batch_size) :
@@ -56,16 +62,17 @@ cdef class Feed :
 
     # feedを初期化
     cpdef init_feed(self) :
+        self.i_batch = 0
         # 入力feed
         self.feed_x_m    = np.zeros((self.batch_size, p.MPS_ROW,   p.COL, p.PLANE)) # m means "manzu"
         self.feed_x_p    = np.zeros((self.batch_size, p.MPS_ROW,   p.COL, p.PLANE)) # p means "pinzu"
         self.feed_x_s    = np.zeros((self.batch_size, p.MPS_ROW,   p.COL, p.PLANE)) # s means "souzu"
         self.feed_x_h    = np.zeros((self.batch_size, p.HONOR_ROW, p.COL, p.PLANE)) # h means "honor"
         self.feed_x_aux  = np.zeros((self.batch_size, p.AUX_INPUT))                 # aux means "auxiliary"
-        self.feed_x_si   = np.zeros((self.batch_size, p.SI_INPUT))                  # si means "steal information"
         self.feed_x_ep1  = np.zeros((self.batch_size, p.EP_INPUT))                  # ep means "enemy player", ep1 is right player
         self.feed_x_ep2  = np.zeros((self.batch_size, p.EP_INPUT))                  # ep means "enemy player", ep2 is opposite player
         self.feed_x_ep3  = np.zeros((self.batch_size, p.EP_INPUT))                  # ep means "enemy player", ep3 is left player
+        self.feed_x_si   = np.zeros((self.batch_size, p.SI_INPUT))                  # si means "steal information"
 
         self.feed_x = [self.feed_x_m,
                        self.feed_x_p,
@@ -78,19 +85,23 @@ cdef class Feed :
         if self.mode == "steal" : self.feed_x.append(self.feed_x_si)
 
         # 出力feed
-        if   self.mode == "main"  : self.feed_y_mode = np.zeros((self.batch_size, p.MAIN_OUTPUT))
-        elif self.mode == "steal" : self.feed_y_mode = np.zeros((self.batch_size, p.STEAL_OUTPUT))
-        elif self.mode == "ready" : self.feed_y_mode = np.zeros((self.batch_size, p.READY_OUTPUT))
-        self.feed_y_p1_hand = np.zeros((self.batch_size, 136))
-        self.feed_y_p2_hand = np.zeros((self.batch_size, 136))
-        self.feed_y_p3_hand = np.zeros((self.batch_size, 136))
-
-        self.feed_y = [self.feed_y_mode,
-                       self.feed_y_p1_hand,
-                       self.feed_y_p2_hand,
-                       self.feed_y_p3_hand]
-
-        self.i_batch = 0
+        self.feed_y_main  = np.zeros((self.batch_size, p.MAIN_OUTPUT))
+        self.feed_y_ready = np.zeros((self.batch_size, p.READY_OUTPUT))
+        self.feed_y_ep1   = np.zeros((self.batch_size, p.EP_OUTPUT))
+        self.feed_y_ep2   = np.zeros((self.batch_size, p.EP_OUTPUT))
+        self.feed_y_ep3   = np.zeros((self.batch_size, p.EP_OUTPUT))
+        self.feed_y_steal = np.zeros((self.batch_size, p.STEAL_OUTPUT))
+        if self.mode == "steal" :
+            self.feed_y = [self.feed_y_steal,
+                           self.feed_y_ep1,
+                           self.feed_y_ep2,
+                           self.feed_y_ep3]
+        else :
+            self.feed_y = [self.feed_y_main,
+                           self.feed_y_ready,
+                           self.feed_y_ep1,
+                           self.feed_y_ep2,
+                           self.feed_y_ep3]
 
 
     # feed, i_batchをゼロクリア
@@ -102,7 +113,7 @@ cdef class Feed :
 
     # feed_xに情報を書き込む
     cpdef write_feed_x(self, game, players, int player_num) :
-    cdef int suit
+        cdef int suit
 
         player = players[player_num]
         for suit in range(4) :
@@ -150,16 +161,9 @@ cdef class Feed :
         for i in range(1,4) :
             ep_num = (player_num + i) % 4 # ep means "enemy player"
             player = players[ep_num]
-            if i == 1 :
-                feed_x = self.feed_x_ep1
-                feed_y = self.feed_y_p1_hand
-            elif i == 2 :
-                feed_x = self.feed_x_ep2
-                feed_y = self.feed_y_p2_hand
-            elif i == 3 :
-                feed_x = self.feed_x_ep3
-                feed_y = self.feed_y_p3_hand
-            self.write_about_ep(player, ep_num, feed_x[self.i_batch], feed_y[self.i_batch])
+            if   i == 1 : self.write_about_ep(player, ep_num, self.feed_x_ep1[self.i_batch], self.feed_y_ep1[self.i_batch])
+            elif i == 2 : self.write_about_ep(player, ep_num, self.feed_x_ep2[self.i_batch], self.feed_y_ep2[self.i_batch])
+            elif i == 3 : self.write_about_ep(player, ep_num, self.feed_x_ep3[self.i_batch], self.feed_y_ep3[self.i_batch])
 
 
     # 鳴きに関する情報を一旦書き込んで保存する
@@ -329,7 +333,7 @@ cdef class Feed :
 
 
     # feedに手牌読み用の情報を書き込む
-    cpdef write_about_ep(self, player, int player_num, feed_x, feed_y) :
+    cpdef write_about_ep(self, player, int player_num, x, y) :
         cdef int wi
 
         # feed_xに河の情報を書き込む
@@ -337,17 +341,17 @@ cdef class Feed :
         states = player.discarded_state
         for i, (tile, state) in enumerate(zip(tiles, states)) :
             wi = i * 76 + (tile if state else tile + 38)
-            self.feed_x[wi] = 1
+            x[wi] = 1
         wi = 1900
-        self.feed_x[wi + player.ready_index] = 1
+        x[wi + player.ready_turn_num] = 1
         wi += 25
 
         # feed_xに鳴きの情報を書き込む
         hand = [0] * 38
         opened_hand = player.opened_hand
         for i in range(0,20,5) :
-            if opened_hand[i] == 0 : break
             tile = opened_hand[i+1]
+            if opened_hand[i] == 0 : break
             elif opened_hand[i] == BlockType.OPENED_TRIPLET : hand[tile] += 3
             elif opened_hand[i] == BlockType.OPENED_RUN :
                 hand[tile] += 1
@@ -358,16 +362,16 @@ cdef class Feed :
         for i in range(1,38) :
             if i % 10 == 0 : continue
             elif hand[i] == 0 : pass
-            elif hand[i] == 1 : feed_x[wi] = 1
-            elif hand[i] == 2 : feed_x[wi:wi+1] = 1
-            elif hand[i] == 3 : feed_x[wi:wi+2] = 1
-            elif hand[i] == 4 : feed_x[wi:wi+3] = 1
+            elif hand[i] == 1 : x[wi] = 1
+            elif hand[i] == 2 : x[wi:wi+1] = 1
+            elif hand[i] == 3 : x[wi:wi+2] = 1
+            elif hand[i] == 4 : x[wi:wi+3] = 1
             wi += 4
 
         for i in range(0,20,5) :
             if opened_hand[i] != 0 :
-                feed_x[wi+opened_hand[i+1]] = 1
-                feed_x[wi+opened_hand[i+4]+38] = 1
+                x[wi+opened_hand[i+1]] = 1
+                x[wi+opened_hand[i+4]+38] = 1
             wi += 76
 
         # feed_yに正解の手を書き込む
@@ -376,15 +380,25 @@ cdef class Feed :
         for i in range(1,38) :
             if i % 10 == 0 : continue
             elif hand[i] == 0 : pass
-            elif hand[i] == 1 : self.feed_y[self.i_batch, wi] = 1
-            elif hand[i] == 2 : self.feed_y[self.i_batch, wi:wi+1] = 1
-            elif hand[i] == 3 : self.feed_y[self.i_batch, wi:wi+2] = 1
-            elif hand[i] == 4 : self.feed_y[self.i_batch, wi:wi+3] = 1
+            elif hand[i] == 1 : y[wi] = 1
+            elif hand[i] == 2 : y[wi:wi+1] = 1
+            elif hand[i] == 3 : y[wi:wi+2] = 1
+            elif hand[i] == 4 : y[wi:wi+3] = 1
             wi += 4
 
 
-    # feed_yに正解ラベルを書き込む
-    cpdef write_feed_y_mode(self, int i) :
-        self.feed_y[0][self.i_batch,i] = 1
+    # feed_y_mainに正解ラベルを書き込む
+    cpdef write_feed_y_main(self, int i) :
+        self.feed_y_main[self.i_batch,i] = 1
+
+
+    # feed_y_mainに正解ラベルを書き込む
+    cpdef write_feed_y_ready(self, int i) :
+        self.feed_y_ready[self.i_batch,i] = 1
+
+
+    # feed_y_mainに正解ラベルを書き込む
+    cpdef write_feed_y_steal(self, int i) :
+        self.feed_y_steal[self.i_batch,i] = 1
 
 

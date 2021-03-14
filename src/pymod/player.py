@@ -36,6 +36,7 @@ class Player :
         self.has_right_to_one_shot = False                # 一発があるか
         self.has_right_to_nagashi_mangan = True           # 流し満貫継続中か
         self.is_ready = False                             # テンパイか
+        self.ready_turn_num = 0                           # 立直した巡目
 
         self.opened_sets_num = 0                          # 晒している面子の数(暗槓含む)
         self.kans_num = 0                                 # 槓した回数
@@ -48,11 +49,13 @@ class Player :
         self.winds_num = 0                                # 大四喜パオ判定用
 
 
+
     # 立直宣言
     def declare_ready(self, is_first_turn:bool) -> None :
         self.has_declared_ready = True
         if is_first_turn : self.has_declared_double_ready = True
         self.has_right_to_one_shot = True
+        self.ready_turn_num = len(self.discarded_tiles)
         self.score -= 1000
 
 
