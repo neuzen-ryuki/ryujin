@@ -91,7 +91,7 @@ if __name__ ==  "__main__" :
     cbf1 = keras.callbacks.ModelCheckpoint(filepath=saved_file_name,
                                            save_weights_only=False,
                                            monitor="val_loss")
-    cbf2 = keras.callbacks.CSVLogger(f"{p.RESULT_DIR}/result_history.csv")
+    cbf2 = keras.callbacks.CSVLogger(f"{p.RESULT_DIR}/{mode}_history.csv")
 
     # learning
     # 途中でgenerate_feed()がfeedを吐かなくなってもsaveするようtry-exceptで制御
