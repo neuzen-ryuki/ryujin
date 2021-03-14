@@ -104,7 +104,7 @@ if __name__ ==  "__main__" :
             verbose=1,
             callbacks=[cbf1, cbf2])
     except : pass
-    model.save(saved_file_name)
+    model.save(p.SAVED_DIR + "/{mode}/last.h5")
 
     ## for debug
     # model.fit(

@@ -106,11 +106,11 @@ def create_main_model() :
     x = layers.Conv2D(p.MPS_CH, (3,2), activation="relu", name="mpsConv3")(x)
     x = layers.BatchNormalization(name="mpsConv3_BN")(x)
     mps_outputs = layers.Flatten(name="mps_Flatten")(x)
+    mps_model = keras.Model(inputs=mps_inputs, outputs=mps_outputs, name="mps_model")
 
-    mps_model = keras.Model(mps_inputs, mps_outputs)
-    m_inputs = keras.layers.Input(shape=(p.MPS_ROW, p.COL, p.PLANE), name="m_inputs")
-    p_inputs = keras.layers.Input(shape=(p.MPS_ROW, p.COL, p.PLANE), name="p_inputs")
-    s_inputs = keras.layers.Input(shape=(p.MPS_ROW, p.COL, p.PLANE), name="s_inputs")
+    m_inputs = keras.layers.Input(shape=(p.MPS_ROW, p.COL, p.PLANE), name="m_input")
+    p_inputs = keras.layers.Input(shape=(p.MPS_ROW, p.COL, p.PLANE), name="p_input")
+    s_inputs = keras.layers.Input(shape=(p.MPS_ROW, p.COL, p.PLANE), name="s_input")
 
     m_outputs = mps_model(m_inputs)
     p_outputs = mps_model(p_inputs)
@@ -134,21 +134,16 @@ def create_main_model() :
     x = layers.BatchNormalization(name="EP2_BN")(x)
     x = layers.Dense(p.EP_UNITS3, activation="relu", name="EP3_MLP")(x)
     x = layers.BatchNormalization(name="EP3_BN")(x)
-    x = layers.Dense(p.EP_OUTPUT, activation="relu", name="EP_OUT")(x)
-    ep_outputs = layers.BatchNormalization(name="EP_OUT_BN")(x)
+    ep_outputs = layers.Dense(p.EP_OUTPUT, activation="relu", name="ep_output")(x)
+    ep_model = keras.Model(inputs=ep_inputs, outputs=ep_outputs, name="ep_model")
 
-    ep_model = keras.Model(ep_inputs, ep_outputs)
-    ep1_inputs = keras.layers.Input(shape=(p.EP_INPUT, ), name="ep1_inputs")
-    ep2_inputs = keras.layers.Input(shape=(p.EP_INPUT, ), name="ep2_inputs")
-    ep3_inputs = keras.layers.Input(shape=(p.EP_INPUT, ), name="ep3_inputs")
+    ep1_inputs = keras.layers.Input(shape=(p.EP_INPUT, ), name="ep1_input")
+    ep2_inputs = keras.layers.Input(shape=(p.EP_INPUT, ), name="ep2_input")
+    ep3_inputs = keras.layers.Input(shape=(p.EP_INPUT, ), name="ep3_input")
 
     ep1_outputs = ep_model(ep1_inputs)
     ep2_outputs = ep_model(ep2_inputs)
     ep3_outputs = ep_model(ep3_inputs)
-
-    # ep1_connects = ep_model(ep1_inputs)
-    # ep2_connects = ep_model(ep2_inputs)
-    # ep3_connects = ep_model(ep3_inputs)
 
     # 各NN結合後のNNを構築
     aux_inputs = keras.layers.Input(shape=(p.AUX_INPUT, ), name="aux_input")
@@ -156,13 +151,10 @@ def create_main_model() :
                                         p_outputs,
                                         s_outputs,
                                         h_outputs,
-                                        # ep1_connects,
-                                        # ep2_connects,
-                                        # ep3_connects,
+                                        aux_inputs,
                                         ep1_outputs,
                                         ep2_outputs,
-                                        ep3_outputs,
-                                        aux_inputs])
+                                        ep3_outputs])
     x = layers.Dense(p.COMMON_UNITS1, activation="relu", name="COMMON_MLP")(common_inputs)
     x = layers.BatchNormalization(name="COMMON_BN")(x)
     x = layers.Dense(p.COMMON_UNITS2, activation="relu", name="COMMON_OUT")(x)
@@ -182,25 +174,35 @@ def create_main_model() :
     x = layers.BatchNormalization(name="READY_OUT_BN")(x)
     ready_outputs = layers.Dense(p.READY_OUTPUT, activation="softmax", name="ready_output")(x)
 
-    ins = [m_inputs, p_inputs, s_inputs, h_inputs, ep1_inputs, ep2_inputs, ep3_inputs, aux_inputs]
-    outs = [main_outputs, ready_outputs, ep1_outputs, ep2_outputs, ep3_outputs]
-    model = keras.Model(inputs=ins, outputs=outs)
+    mr_ins = [m_inputs, p_inputs, s_inputs, h_inputs, aux_inputs, ep1_inputs, ep2_inputs, ep3_inputs]
+    mr_outs = [main_outputs, ready_outputs]
+    mr_model = keras.Model(inputs=mr_ins, outputs=mr_outs)
 
     # 各種設定
     ep_opt = keras.optimizers.SGD()
     opt = keras.optimizers.Adam()
     gpu_is_available = tf.config.experimental.list_physical_devices("GPU")
     if gpu_is_available :
-        ep_opt = tf.train.experimental.enable_mixed_precision_graph_rewrite(ep_opt)
+        print(colored(f"START LEARNING WITH GPU", "green", attrs=["bold"]))
         opt = tf.train.experimental.enable_mixed_precision_graph_rewrite(opt)
+    else :
+        print(colored(f"START LEARNING WITHOUT GPU", "yellow", attrs=["bold"]))
 
-    ep_model.compile(
-        optimizer=ep_opt,
-        loss="mse")
+    ins = [m_inputs, p_inputs, s_inputs, h_inputs, aux_inputs, ep1_inputs, ep2_inputs, ep3_inputs]
+    outs = [main_outputs, ready_outputs, ep1_outputs, ep2_outputs, ep3_outputs]
+    model = keras.Model(inputs=ins, outputs=outs)
     model.compile(
         optimizer=opt,
-        loss="categorical_crossentropy")
-
+        loss=[["categorical_crossentropy"],
+              ["categorical_crossentropy"],
+              ["mse"],
+              ["mse"],
+              ["mse"]],
+        metrics=[["accuracy"],
+                 ["accuracy"],
+                 [],
+                 [],
+                 []])
     return model
 
 

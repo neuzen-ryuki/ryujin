@@ -27,7 +27,7 @@ def create_val(mode) :
     val_x_ep1   = np.zeros((p.VAL_SIZE, p.EP_INPUT))
     val_x_ep2   = np.zeros((p.VAL_SIZE, p.EP_INPUT))
     val_x_ep3   = np.zeros((p.VAL_SIZE, p.EP_INPUT))
-    val_x_si = np.zeros((p.VAL_SIZE, p.SI_INPUT))
+    val_x_si    = np.zeros((p.VAL_SIZE, p.SI_INPUT))
 
     val_y_main  = np.zeros((p.VAL_SIZE, p.MAIN_OUTPUT))
     val_y_ready = np.zeros((p.VAL_SIZE, p.READY_OUTPUT))

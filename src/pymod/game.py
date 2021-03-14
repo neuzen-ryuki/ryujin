@@ -155,6 +155,7 @@ class Game :
             self.feed.write_feed_x(self, self.players, player_num)
             self.feed.write_feed_y_main(discarded_tile)
             self.feed.write_feed_y_ready(1 if self.ready_flag else 0)
+            self.feed.write_feed_eps(self.players, player_num)
             self.feed.i_batch += 1
 
         # プレイヤが牌を切る
