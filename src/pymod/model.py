@@ -188,12 +188,15 @@ def create_main_model() :
 
     # 各種設定
     ep_opt = keras.optimizers.SGD()
-    ep_opt = tf.train.experimental.enable_mixed_precision_graph_rewrite(ep_opt)
+    opt = keras.optimizers.Adam()
+    gpu_is_available = tf.config.experimental.list_physical_devices("GPU")
+    if gpu_is_available :
+        ep_opt = tf.train.experimental.enable_mixed_precision_graph_rewrite(ep_opt)
+        opt = tf.train.experimental.enable_mixed_precision_graph_rewrite(opt)
+
     ep_model.compile(
         optimizer=ep_opt,
         loss="mse")
-    opt = keras.optimizers.Adam()
-    opt = tf.train.experimental.enable_mixed_precision_graph_rewrite(opt)
     model.compile(
         optimizer=opt,
         loss="categorical_crossentropy")
