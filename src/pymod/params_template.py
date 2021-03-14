@@ -14,7 +14,7 @@ class Params(metaclass=ConstMeta) :
     # 学習関連
     EPOCH            = 2
     YEARS_NUM        = 9
-    VAL_SIZE         = 100000
+    VAL_SIZE         = 50000
     VALIDATE_SPAN    = 5000
     BATCH_SIZE       = 1000
     ENDLESS          = 100000 # feed_generator()がデータを切らさないくらいの十分大きな数
@@ -26,14 +26,19 @@ class Params(metaclass=ConstMeta) :
     PLANE            = 12
     AUX_INPUT        = 46
     SI_INPUT         = 42
+    EP_INPUT         = 2365
     MAIN_OUTPUT      = 38
     STEAL_OUTPUT     = 6
     READY_OUTPUT     = 2
+    EP_OUTPUT        = 136
 
     # モデルのパラメータ数関連
-    MPS_CH           = 128
-    HONOR_CH         = 128
-    COMMON_UNITS1    = 768
+    MPS_CH           = 256
+    HONOR_CH         = 256
+    EP_UNITS1        = 1024
+    EP_UNITS2        = 512
+    EP_UNITS3        = 256
+    COMMON_UNITS1    = 1024
     COMMON_UNITS2    = 512
     UNITS            = 256
 
@@ -50,6 +55,6 @@ class Params(metaclass=ConstMeta) :
     VAL_XML_DIR      = f"{XML_DIR}/val/"
 
     # モデル関連
-    MAIN_MODEL       = SAVED_DIR + "/main/"  + ""
-    STEAL_MODEL      = SAVED_DIR + "/steal/" + ""
-    READY_MODEL      = SAVED_DIR + "/ready/" + ""
+    MAIN_MODEL       = SAVED_DIR + "/main/"  + "last.h5"
+    STEAL_MODEL      = SAVED_DIR + "/steal/" + "last.h5"
+    READY_MODEL      = SAVED_DIR + "/ready/" + "last.h5"
