@@ -67,13 +67,22 @@ if __name__ ==  "__main__" :
 
     # load data for validation
     val = np.load(f"{p.VAL_DIR}/val_{mode}.npz")
-    val_x = [val["m"][:p.VAL_SIZE],
-             val["p"][:p.VAL_SIZE],
-             val["s"][:p.VAL_SIZE],
-             val["h"][:p.VAL_SIZE],
-             val["aux"][:p.VAL_SIZE]]
-    if mode == "steal" : val_x.append(val["si"][:p.VAL_SIZE])
-    val_y = val["y"][:p.VAL_SIZE]
+    val_x = [val["m"],
+             val["p"],
+             val["s"],
+             val["h"],
+             val["aux"],
+             val["ep1"],
+             val["ep2"],
+             val["ep3"]]
+    val_y = [val["ym"],
+             val["yr"],
+             val["yep1"],
+             val["yep2"],
+             val["yep3"]]
+    if mode == "steal" :
+        val_x.append(val["si"])
+        val_y.append(val["ys"])
 
     # setting up learning records
     try : os.makedirs(p.SAVED_DIR + f"/{mode}")
