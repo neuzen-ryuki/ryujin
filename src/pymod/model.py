@@ -99,13 +99,13 @@ def create_common_network() :
 def create_main_model() :
     # 数牌処理CNNを構築
     mps_inputs = keras.layers.Input(shape=(p.MPS_ROW, p.COL, p.PLANE), name="mps_input")
-    x = layers.Conv2D(p.MPS_CH, (3,2), activation="relu", name="mpsConv1")(mps_inputs)
-    x = layers.BatchNormalization(name="mpsConv1_BN")(x)
-    x = layers.Conv2D(p.MPS_CH, (3,2), activation="relu", name="mpsConv2")(x)
-    x = layers.BatchNormalization(name="mpsConv2_BN")(x)
-    x = layers.Conv2D(p.MPS_CH, (3,2), activation="relu", name="mpsConv3")(x)
-    x = layers.BatchNormalization(name="mpsConv3_BN")(x)
-    mps_outputs = layers.Flatten(name="mps_Flatten")(x)
+    x = layers.Conv2D(p.MPS_CH, (3,2), activation="relu", name="MPS_Conv1")(mps_inputs)
+    x = layers.BatchNormalization(name="MPS_BN1")(x)
+    x = layers.Conv2D(p.MPS_CH, (3,2), activation="relu", name="MPS_Conv2")(x)
+    x = layers.BatchNormalization(name="MPS_BN2")(x)
+    x = layers.Conv2D(p.MPS_CH, (3,2), activation="relu", name="MPS_Conv3")(x)
+    x = layers.BatchNormalization(name="MPS_BN3")(x)
+    mps_outputs = layers.Flatten(name="MPS_Flatten")(x)
     mps_model = keras.Model(inputs=mps_inputs, outputs=mps_outputs, name="mps_model")
 
     m_inputs = keras.layers.Input(shape=(p.MPS_ROW, p.COL, p.PLANE), name="m_input")
@@ -118,23 +118,23 @@ def create_main_model() :
 
     # 字牌処理CNNを構築
     h_inputs = keras.layers.Input(shape=(p.HONOR_ROW, p.COL, p.PLANE), name="honor_input")
-    x = layers.Conv2D(p.HONOR_CH, (3,2), activation="relu", name="honorConv1")(h_inputs)
-    x = layers.BatchNormalization(name="honorConv1_BN")(x)
-    x = layers.Conv2D(p.HONOR_CH, (3,2), activation="relu", name="honorConv2")(x)
-    x = layers.BatchNormalization(name="honorConv2_BN")(x)
-    x = layers.Conv2D(p.HONOR_CH, (3,2), activation="relu", name="honorConv3")(x)
-    x = layers.BatchNormalization(name="honorConv3_BN")(x)
+    x = layers.Conv2D(p.HONOR_CH, (3,2), activation="relu", name="HONOR_Conv1")(h_inputs)
+    x = layers.BatchNormalization(name="HONOR_BN1")(x)
+    x = layers.Conv2D(p.HONOR_CH, (3,2), activation="relu", name="HONOR_Conv2")(x)
+    x = layers.BatchNormalization(name="HONOR_BN2")(x)
+    x = layers.Conv2D(p.HONOR_CH, (3,2), activation="relu", name="HONOR_Conv3")(x)
+    x = layers.BatchNormalization(name="HONOR_BN3")(x)
     h_outputs = layers.Flatten(name="honor_Flatten")(x)
 
     # 手牌読み用MLPを構築
     ep_inputs = keras.layers.Input(shape=(p.EP_INPUT, ), name="ep_input")
-    x = layers.Dense(p.EP_UNITS1, activation="relu", name="EP1_MLP")(ep_inputs)
-    x = layers.BatchNormalization(name="EP1_BN")(x)
-    x = layers.Dense(p.EP_UNITS2, activation="relu", name="EP2_MLP")(x)
-    x = layers.BatchNormalization(name="EP2_BN")(x)
-    x = layers.Dense(p.EP_UNITS3, activation="relu", name="EP3_MLP")(x)
-    x = layers.BatchNormalization(name="EP3_BN")(x)
-    ep_outputs = layers.Dense(p.EP_OUTPUT, activation="relu", name="ep_output")(x)
+    x = layers.Dense(p.EP_UNITS1, activation="relu", name="EP_MLP1")(ep_inputs)
+    x = layers.BatchNormalization(name="EP_BN1")(x)
+    x = layers.Dense(p.EP_UNITS2, activation="relu", name="EP_MLP2")(x)
+    x = layers.BatchNormalization(name="EP_BN2")(x)
+    x = layers.Dense(p.EP_UNITS3, activation="relu", name="EP_MLP3")(x)
+    x = layers.BatchNormalization(name="EP_BN3")(x)
+    ep_outputs = layers.Dense(p.EP_OUTPUT, activation="sigmoid", name="ep_output")(x)
     ep_model = keras.Model(inputs=ep_inputs, outputs=ep_outputs, name="ep_model")
 
     ep1_inputs = keras.layers.Input(shape=(p.EP_INPUT, ), name="ep1_input")
@@ -155,28 +155,30 @@ def create_main_model() :
                                         ep1_outputs,
                                         ep2_outputs,
                                         ep3_outputs])
-    x = layers.Dense(p.COMMON_UNITS1, activation="relu", name="COMMON_MLP")(common_inputs)
-    x = layers.BatchNormalization(name="COMMON_BN")(x)
-    x = layers.Dense(p.COMMON_UNITS2, activation="relu", name="COMMON_OUT")(x)
-    common_outputs = layers.BatchNormalization(name="COMMON_OUT_BN")(x)
+    x = layers.Dense(p.COMMON_UNITS1, activation="relu", name="COMMON_MLP1")(common_inputs)
+    x = layers.BatchNormalization(name="COMMON_BN1")(x)
+    x = layers.Dense(p.COMMON_UNITS2, activation="relu", name="COMMON_MLP2")(x)
+    x = layers.BatchNormalization(name="COMMON_BN2")(x)
+    x = layers.Dense(p.COMMON_UNITS3, activation="relu", name="COMMON3_MLP3")(x)
+    common_outputs = layers.BatchNormalization(name="COMMON_BN3")(x)
 
     # 打牌判断出力NNを構築
-    main_inputs = layers.Dense(p.UNITS, activation="relu", name="MAIN_MLP")(common_outputs)
-    x = layers.BatchNormalization(name="MAIN_BN")(main_inputs)
-    x = layers.Dense(p.UNITS, activation="relu", name="MAIN_OUT")(x)
-    x = layers.BatchNormalization(name="MAIN_OUT_BN")(x)
+    main_inputs = layers.Dense(p.MAIN_UNITS1, activation="relu", name="MAIN_MLP1")(common_outputs)
+    x = layers.BatchNormalization(name="MAIN_BN1")(main_inputs)
+    x = layers.Dense(p.MAIN_UNITS2, activation="relu", name="MAIN_MLP2")(x)
+    x = layers.BatchNormalization(name="MAIN_BN2")(x)
+    x = layers.Dense(p.MAIN_UNITS3, activation="relu", name="MAIN_MLP3")(x)
+    x = layers.BatchNormalization(name="MAIN_BN3")(x)
     main_outputs = layers.Dense(p.MAIN_OUTPUT, activation="softmax", name="main_output")(x)
 
     # 立直判断出力NNを構築
-    ready_inputs = layers.Dense(p.UNITS, activation="relu", name="READY_MLP")(common_outputs)
-    x = layers.BatchNormalization(name="READY_BN")(ready_inputs)
-    x = layers.Dense(p.UNITS, activation="relu", name="READY_OUT")(x)
-    x = layers.BatchNormalization(name="READY_OUT_BN")(x)
+    ready_inputs = layers.Dense(p.READY_UNITS1, activation="relu", name="READY_MLP1")(common_outputs)
+    x = layers.BatchNormalization(name="READY_BN1")(ready_inputs)
+    x = layers.Dense(p.READY_UNITS2, activation="relu", name="READY_MLP2")(x)
+    x = layers.BatchNormalization(name="READY_BN2")(x)
+    x = layers.Dense(p.READY_UNITS3, activation="relu", name="READY_MLP3")(x)
+    x = layers.BatchNormalization(name="READY_BN3")(x)
     ready_outputs = layers.Dense(p.READY_OUTPUT, activation="softmax", name="ready_output")(x)
-
-    mr_ins = [m_inputs, p_inputs, s_inputs, h_inputs, aux_inputs, ep1_inputs, ep2_inputs, ep3_inputs]
-    mr_outs = [main_outputs, ready_outputs]
-    mr_model = keras.Model(inputs=mr_ins, outputs=mr_outs)
 
     # 各種設定
     ep_opt = keras.optimizers.SGD()
@@ -195,14 +197,15 @@ def create_main_model() :
         optimizer=opt,
         loss=[["categorical_crossentropy"],
               ["categorical_crossentropy"],
-              ["mse"],
-              ["mse"],
-              ["mse"]],
+              ["binary_crossentropy"],
+              ["binary_crossentropy"],
+              ["binary_crossentropy"]],
         metrics=[["accuracy"],
                  ["accuracy"],
-                 [],
-                 [],
-                 []])
+                 ["binary_crossentropy"],
+                 ["binary_crossentropy"],
+                 ["binary_crossentropy"]])
+
     return model
 
 
@@ -248,6 +251,7 @@ def create_model(mode:str) -> keras.Model :
     try : os.makedirs(p.RESULT_DIR)
     except : pass
     keras.utils.plot_model(model, f"{p.RESULT_DIR}/{mode}_model.png", show_shapes=True)
+    model.summary()
 
     return model
 
