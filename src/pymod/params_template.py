@@ -35,12 +35,18 @@ class Params(metaclass=ConstMeta) :
     # モデルのパラメータ数関連
     MPS_CH           = 256
     HONOR_CH         = 256
+    COMMON_UNITS1    = 2048
+    COMMON_UNITS2    = 1024
+    COMMON_UNITS3    = 512
     EP_UNITS1        = 1024
     EP_UNITS2        = 512
     EP_UNITS3        = 256
-    COMMON_UNITS1    = 1024
-    COMMON_UNITS2    = 512
-    UNITS            = 256
+    MAIN_UNITS1      = 512
+    MAIN_UNITS2      = 512
+    MAIN_UNITS3      = 256
+    READY_UNITS1     = 512
+    READY_UNITS2     = 512
+    READY_UNITS3     = 256
 
     # ファイル保存関連
     VERSION          = "temp"
@@ -55,6 +61,6 @@ class Params(metaclass=ConstMeta) :
     VAL_XML_DIR      = f"{XML_DIR}/val/"
 
     # モデル関連
-    MAIN_MODEL       = SAVED_DIR + "/main/"  + "last.h5"
-    STEAL_MODEL      = SAVED_DIR + "/steal/" + "last.h5"
-    READY_MODEL      = SAVED_DIR + "/ready/" + "last.h5"
+    MAIN_MODEL       = SAVED_DIR + "/main/last.h5"
+    STEAL_MODEL      = SAVED_DIR + "/steal/last.h5"
+    READY_MODEL      = SAVED_DIR + "/ready/last.h5"
