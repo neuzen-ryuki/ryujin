@@ -100,11 +100,8 @@ def create_main_model() :
     # 数牌処理CNNを構築
     mps_inputs = keras.layers.Input(shape=(p.MPS_ROW, p.COL, p.PLANE), name="mps_input")
     x = layers.Conv2D(p.MPS_CH, (3,2), activation="relu", name="MPS_Conv1")(mps_inputs)
-    x = layers.BatchNormalization(name="MPS_BN1")(x)
     x = layers.Conv2D(p.MPS_CH, (3,2), activation="relu", name="MPS_Conv2")(x)
-    x = layers.BatchNormalization(name="MPS_BN2")(x)
     x = layers.Conv2D(p.MPS_CH, (3,2), activation="relu", name="MPS_Conv3")(x)
-    x = layers.BatchNormalization(name="MPS_BN3")(x)
     mps_outputs = layers.Flatten(name="MPS_Flatten")(x)
     mps_model = keras.Model(inputs=mps_inputs, outputs=mps_outputs, name="mps_model")
 
@@ -119,21 +116,15 @@ def create_main_model() :
     # 字牌処理CNNを構築
     h_inputs = keras.layers.Input(shape=(p.HONOR_ROW, p.COL, p.PLANE), name="honor_input")
     x = layers.Conv2D(p.HONOR_CH, (3,2), activation="relu", name="HONOR_Conv1")(h_inputs)
-    x = layers.BatchNormalization(name="HONOR_BN1")(x)
     x = layers.Conv2D(p.HONOR_CH, (3,2), activation="relu", name="HONOR_Conv2")(x)
-    x = layers.BatchNormalization(name="HONOR_BN2")(x)
     x = layers.Conv2D(p.HONOR_CH, (3,2), activation="relu", name="HONOR_Conv3")(x)
-    x = layers.BatchNormalization(name="HONOR_BN3")(x)
     h_outputs = layers.Flatten(name="honor_Flatten")(x)
 
     # 手牌読み用MLPを構築
     ep_inputs = keras.layers.Input(shape=(p.EP_INPUT, ), name="ep_input")
     x = layers.Dense(p.EP_UNITS1, activation="relu", name="EP_MLP1")(ep_inputs)
-    x = layers.BatchNormalization(name="EP_BN1")(x)
     x = layers.Dense(p.EP_UNITS2, activation="relu", name="EP_MLP2")(x)
-    x = layers.BatchNormalization(name="EP_BN2")(x)
     x = layers.Dense(p.EP_UNITS3, activation="relu", name="EP_MLP3")(x)
-    x = layers.BatchNormalization(name="EP_BN3")(x)
     ep_outputs = layers.Dense(p.EP_OUTPUT, activation="sigmoid", name="ep_output")(x)
     ep_model = keras.Model(inputs=ep_inputs, outputs=ep_outputs, name="ep_model")
 
