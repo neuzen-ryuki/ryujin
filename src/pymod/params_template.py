@@ -41,12 +41,8 @@ class Params(metaclass=ConstMeta) :
     EP_UNITS1        = 1024
     EP_UNITS2        = 512
     EP_UNITS3        = 256
-    MAIN_UNITS1      = 512
-    MAIN_UNITS2      = 512
-    MAIN_UNITS3      = 256
-    READY_UNITS1     = 512
-    READY_UNITS2     = 512
-    READY_UNITS3     = 256
+    UNITS1           = 512
+    UNITS2           = 256
 
     # ファイル保存関連
     VERSION          = "temp"
@@ -63,4 +59,3 @@ class Params(metaclass=ConstMeta) :
     # モデル関連
     MAIN_MODEL       = SAVED_DIR + "/main/last.h5"
     STEAL_MODEL      = SAVED_DIR + "/steal/last.h5"
-    READY_MODEL      = SAVED_DIR + "/ready/last.h5"
