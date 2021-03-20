@@ -35,6 +35,7 @@ def create_val(mode) :
     val_y_ep2   = np.zeros((p.VAL_SIZE, p.EP_OUTPUT))
     val_y_ep3   = np.zeros((p.VAL_SIZE, p.EP_OUTPUT))
     val_y_steal = np.zeros((p.VAL_SIZE, p.STEAL_OUTPUT))
+    val_y_red   = np.zeros((p.VAL_SIZE, p.RED_OUTPUT))
 
     feed = Feed(mode, 2000)
     shanten_calculator = ShantenNumCalculator()
@@ -76,8 +77,9 @@ def create_val(mode) :
         val_y_ep2[i]   = feed.feed_y_ep2[i_rnd]
         val_y_ep3[i]   = feed.feed_y_ep3[i_rnd]
         val_y_steal[i] = feed.feed_y_steal[i_rnd]
+        val_y_red[i]   = feed.feed_y_red[i_rnd]
         i += 1
-        print(f"i: {i}, rnd_i: {i_rnd}, i_batch:{feed.i_batch}")
+        print(f"i: {i:5d}, rnd_i: {i_rnd:3d}, i_batch: {feed.i_batch:3d}")
 
         # save
         if i == p.VAL_SIZE :
@@ -98,7 +100,8 @@ def create_val(mode) :
                      yep1=val_y_ep1,
                      yep2=val_y_ep2,
                      yep3=val_y_ep3,
-                     ys=val_y_steal)
+                     ys=val_y_steal,
+                     yred=val_y_red)
             print("DONE!")
             break
 

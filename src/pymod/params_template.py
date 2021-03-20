@@ -28,8 +28,9 @@ class Params(metaclass=ConstMeta) :
     SI_INPUT         = 42
     EP_INPUT         = 2365
     MAIN_OUTPUT      = 38
-    STEAL_OUTPUT     = 6
     READY_OUTPUT     = 2
+    STEAL_OUTPUT     = 6
+    RED_OUTPUT       = 2
     EP_OUTPUT        = 136
 
     # モデルのパラメータ数関連

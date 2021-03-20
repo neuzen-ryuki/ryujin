@@ -56,7 +56,7 @@ class Game :
             self.switch_proc(item)
             if p.BATCH_SIZE == self.feed.i_batch :
                 yield (self.feed.feed_x, self.feed.feed_y)
-                self.feed.init_feed()
+                self.feed.clear_feed()
 
 
     # INITタグの処理
@@ -124,7 +124,7 @@ class Game :
     def proc_Tsumo(self, player_num, tile) :
         # 一つ前の打牌で，誰かが鳴けたけど鳴かなかった時のfeed__yへの書き込み
         if self.write_flag :
-            self.feed.write_feed_steal(self, self.players, 0)
+            self.feed.write_feed_steal(self, self.players, 0, False)
             self.write_flag = False
 
         self.org_got_tile = tile
@@ -132,6 +132,7 @@ class Game :
         self.players[player_num].has_right_to_one_shot = False
         self.players[player_num].reset_same_turn_furiten()
         self.players[player_num].get_tile(self.convert_tile(tile))
+
 
     # リーチできるかどうかの判定
     def can_declare_ready(self, game) :
@@ -193,7 +194,7 @@ class Game :
 
         # feed_steal_xyへの書き込み
         if self.write_flag :
-            self.feed.write_feed_steal(self, self.players, action)
+            self.feed.write_feed_steal(self, self.players, action, self.contain_red)
             self.write_flag = False
 
         # 鳴きによる変数処理
@@ -210,6 +211,7 @@ class Game :
 
     # Nタグについているmコードを解析してそれぞれの鳴きに対する処理をする
     def analyze_mc(self, player_num:int, mc:int) -> int :
+        self.contain_red = False
         # チー
         if  (mc & 0x0004) :
             pt = (mc & 0xFC00) >> 10
@@ -220,7 +222,9 @@ class Game :
             run = [n, n+1, n+2]
             pp = [(mc & 0x0018) >> 3, (mc & 0x0060) >> 5, (mc & 0x0180) >> 7]
             for i in range(3) :
-                if (run[i] % 10 == 5 and pp[i] == 0) : run[i] -= 5
+                if (run[i] % 10 == 5 and pp[i] == 0) :
+                    run[i] -= 5
+                    self.contain_red = True
             if   r == 0 : self.tile, self.tile1, self.tile2 = run[0], run[1], run[2]
             elif r == 1 : self.tile, self.tile1, self.tile2 = run[1], run[0], run[2]
             elif r == 2 : self.tile, self.tile1, self.tile2 = run[2], run[0], run[1]
@@ -234,7 +238,6 @@ class Game :
             pn =  pt // 3
             color = pn // 9
             self.tile = (color * 10) + (pn % 9) + 1
-            self.contain_red = False
             if(color != 3 and self.tile % 10 == 5) :
                 if ((mc & 0x0060) == 0) : pass
                 elif (r == 0)           : self.tile -= 5

@@ -82,7 +82,11 @@ if __name__ ==  "__main__" :
              val["yep3"]]
     if mode == "steal" :
         val_x.append(val["si"])
-        val_y.append(val["ys"])
+        val_y = [val["ys"],
+                 val["yred"],
+                 val["yep1"],
+                 val["yep2"],
+                 val["yep3"]]
 
     # setting up learning records
     try : os.makedirs(p.SAVED_DIR + f"/{mode}")
@@ -95,22 +99,22 @@ if __name__ ==  "__main__" :
 
     # learning
     # 途中でgenerate_feed()がfeedを吐かなくなってもsaveするようtry-exceptで制御
-    try :
-        model.fit(
-            generate_feed(mode),
-            validation_data=(val_x, val_y),
-            steps_per_epoch=p.VALIDATE_SPAN,
-            epochs=p.ENDLESS,
-            verbose=1,
-            callbacks=[cbf1, cbf2])
-    except : pass
-    model.save(p.SAVED_DIR + "/{mode}_last.h5")
+    # try :
+    #     model.fit(
+    #         generate_feed(mode),
+    #         validation_data=(val_x, val_y),
+    #         steps_per_epoch=p.VALIDATE_SPAN,
+    #         epochs=p.ENDLESS,
+    #         verbose=1,
+    #         callbacks=[cbf1, cbf2])
+    # except : pass
+    # model.save(p.SAVED_DIR + "/{mode}_last.h5")
 
     ## for debug
-    # model.fit(
-    #     generate_feed(mode),
-    #     validation_data=(val_x, val_y),
-    #     steps_per_epoch=p.VALIDATE_SPAN,
-    #     epochs=p.ENDLESS,
-    #     verbose=1,
-    #     callbacks=[cbf1, cbf2])
+    model.fit(
+        generate_feed(mode),
+        validation_data=(val_x, val_y),
+        steps_per_epoch=p.VALIDATE_SPAN,
+        epochs=p.ENDLESS,
+        verbose=1,
+        callbacks=[cbf1, cbf2])

@@ -43,6 +43,7 @@ cdef class Feed :
     cdef public np.ndarray feed_y_ep2
     cdef public np.ndarray feed_y_ep3
     cdef public np.ndarray feed_y_steal
+    cdef public np.ndarray feed_y_red
 
 
     def __init__(self, mode, batch_size) :
@@ -91,8 +92,10 @@ cdef class Feed :
         self.feed_y_ep2   = np.zeros((self.batch_size, p.EP_OUTPUT))
         self.feed_y_ep3   = np.zeros((self.batch_size, p.EP_OUTPUT))
         self.feed_y_steal = np.zeros((self.batch_size, p.STEAL_OUTPUT))
+        self.feed_y_red   = np.zeros((self.batch_size, p.RED_OUTPUT))
         if self.mode == "steal" :
             self.feed_y = [self.feed_y_steal,
+                           self.feed_y_red,
                            self.feed_y_ep1,
                            self.feed_y_ep2,
                            self.feed_y_ep3]
@@ -133,22 +136,30 @@ cdef class Feed :
 
 
     # 鳴きに関するfeed_x,yを書き込む
-    cpdef write_feed_steal(self, game, players, int action) :
+    cpdef write_feed_steal(self, game, players, int action, bool contain_red) :
         cdef int i
-        cdef int[2] indexes
 
         if self.steal_info[2] >= 0 :
             self.write_feed_x(game, players, self.steal_info[2])
             self.write_about_steal_info(self.steal_info[4], self.steal_info[3])
-            if action in {1,2} : self.write_feed_y(action)
-            else : self.write_feed_y(0)
+            if action in {1,2} :
+                self.write_feed_y_steal(action)
+                self.write_feed_y_red(1 if contain_red else 0)
+            else :
+                self.write_feed_y_steal(0)
+                self.write_feed_y_red(0)
             self.i_batch += 1
 
-        if self.steal_info[0] >= 0 and not(action in {1,2}) and self.i_batch < p.BATCH_SIZE :
+        if self.steal_info[0] >= 0 and not(action in {1,2}) and self.i_batch < self.batch_size :
             self.write_feed_x(game, players, self.steal_info[0])
             self.write_about_steal_info(self.steal_info[4], self.steal_info[1])
-            if action in {3, 4, 5} : self.write_feed_y(action)
-            else : self.write_feed_y(0)
+            self.write_feed_y_red(contain_red)
+            if action in {3, 4, 5} :
+                self.write_feed_y_steal(action)
+                self.write_feed_y_red(1 if contain_red else 0)
+            else :
+                self.write_feed_y_steal(0)
+                self.write_feed_y_red(0)
             self.i_batch += 1
 
         self.steal_info = [-1] * 5
@@ -392,13 +403,17 @@ cdef class Feed :
         self.feed_y_main[self.i_batch,i] = 1
 
 
-    # feed_y_mainに正解ラベルを書き込む
+    # feed_y_readyに正解ラベルを書き込む
     cpdef write_feed_y_ready(self, int i) :
         self.feed_y_ready[self.i_batch,i] = 1
 
 
-    # feed_y_mainに正解ラベルを書き込む
+    # feed_y_stealに正解ラベルを書き込む
     cpdef write_feed_y_steal(self, int i) :
         self.feed_y_steal[self.i_batch,i] = 1
 
+
+    # feed_y_mainに正解ラベルを書き込む
+    cpdef write_feed_y_red(self, int i) :
+        self.feed_y_red[self.i_batch,i] = 1
 

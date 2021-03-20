@@ -224,9 +224,11 @@ def create_steal_model() :
     x = layers.Activation("relu")(x)
     x = layers.Dense(p.COMMON_UNITS3, use_bias=False, name="COMMON3_MLP3")(x)
     x = layers.BatchNormalization(name="COMMON_BN3")(x)
-    x = layers.Activation("relu")(x)
-    x = layers.Dense(p.UNITS1, use_bias=False, name="STEAL_MLP1")(x)
-    x = layers.BatchNormalization(name="STEAL_BN1")(x)
+    common_outputs = layers.Activation("relu")(x)
+
+    # 鳴き判断出力NNを構築
+    steal_inputs = layers.Dense(p.UNITS1, use_bias=False, name="STEAL_MLP1")(common_outputs)
+    x = layers.BatchNormalization(name="STEAL_BN1")(steal_inputs)
     x = layers.Activation("relu")(x)
     x = layers.Dense(p.UNITS2, use_bias=False, name="STEAL_MLP2")(x)
     x = layers.BatchNormalization(name="STEAL_BN2")(x)
@@ -234,6 +236,17 @@ def create_steal_model() :
     x = layers.Dense(p.STEAL_OUTPUT, use_bias=False, name="STEAL_OUT")(x)
     x = layers.BatchNormalization(name="STEAL_OUT_BN")(x)
     steal_outputs = layers.Activation("softmax", name="steal_output")(x)
+
+    # 赤含み判断出力NNを構築
+    red_inputs = layers.Dense(p.UNITS1, use_bias=False, name="RED_MLP1")(common_outputs)
+    x = layers.BatchNormalization(name="RED_BN1")(red_inputs)
+    x = layers.Activation("relu")(x)
+    x = layers.Dense(p.UNITS2, use_bias=False, name="RED_MLP2")(x)
+    x = layers.BatchNormalization(name="RED_BN2")(x)
+    x = layers.Activation("relu")(x)
+    x = layers.Dense(p.RED_OUTPUT, use_bias=False, name="RED_OUT")(x)
+    x = layers.BatchNormalization(name="RED_OUT_BN")(x)
+    red_outputs = layers.Activation("softmax", name="red_output")(x)
 
     # 各種設定
     opt = keras.optimizers.Adam()
@@ -245,15 +258,17 @@ def create_steal_model() :
         print(colored(f"START LEARNING WITHOUT GPU", "yellow", attrs=["bold"]))
 
     ins = [m_inputs, p_inputs, s_inputs, h_inputs, aux_inputs, ep1_inputs, ep2_inputs, ep3_inputs, st_inputs]
-    outs = [steal_outputs, ep1_outputs, ep2_outputs, ep3_outputs]
+    outs = [steal_outputs, red_outputs, ep1_outputs, ep2_outputs, ep3_outputs]
     model = keras.Model(inputs=ins, outputs=outs)
     model.compile(
         optimizer=opt,
         loss=[["categorical_crossentropy"],
+              ["categorical_crossentropy"],
               ["binary_crossentropy"],
               ["binary_crossentropy"],
               ["binary_crossentropy"]],
         metrics=[["accuracy"],
+                 ["accuracy"],
                  ["binary_crossentropy"],
                  ["binary_crossentropy"],
                  ["binary_crossentropy"]])
