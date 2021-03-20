@@ -114,7 +114,14 @@ cdef class Feed :
         self.i_batch = 0
 
 
-    # feed_xに情報を書き込む
+    # メインのfeed_x,yを書き込む
+    cpdef write_feed_main(self, game, players, int player_num, int discarded_tile, ready_flag) :
+        self.write_feed_x(self, self.players, player_num)
+        self.write_feed_y_main(discarded_tile)
+        self.write_feed_y_ready(1 if self.ready_flag else 0)
+
+
+    # 牌やその他の情報をfeed_xに書き込む
     cpdef write_feed_x(self, game, players, int player_num) :
         cdef int suit
 
@@ -133,6 +140,7 @@ cdef class Feed :
             else         : self.write_about_reds(player.reds, player.opened_reds)
 
         self.write_about_aux(game, players, player_num)
+        self.write_feed_eps(players, player_num)
 
 
     # 鳴きに関するfeed_x,yを書き込む
