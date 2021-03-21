@@ -1,4 +1,4 @@
-#std
+# std
 import sys
 
 # 3rd
@@ -87,7 +87,6 @@ class Game :
         self.tile2 = -1
         self.pos = -1
         self.contain_red = False
-
 
         # Player関係のメンバ変数を初期化
         ten = attr["ten"].split(",")
