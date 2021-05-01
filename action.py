@@ -55,30 +55,18 @@ class Action :
 
 
     # 鳴くかどうか決める
-    # TODO 赤含みで鳴くかどうかまでAIが決められてない．現状赤含みにできたら全て赤含みにしている．
-    # TODO? 一番値が大きかったやつしか返していない．4,3,5,...みたいなときに4(嵌張チー)ができなかったときに3ではなく0を返す．
-    def decide_to_steal(self, game, players, tile, pos, player_num) -> (int, int, int, int, int, int, int, int) :
+    def decide_to_steal(self, game, players, tile, pos, player_num) -> (int, bool) :
         self.steal_feed.write_feed_x(game, players, player_num)
         self.steal_feed.write_about_steal_info(tile, pos)
         pred = self.steal_model.predict(self.steal_feed.feed_x)
         self.steal_feed.clear_feed()
 
-        indexes = np.argsort(-pred[0])
-        action = indexes[0]
-        tile1, tile2 = -1, -1
+        action = np.argsort(-pred[0][0])[0]
+        red = np.argsort(-pred[1][0])
+        if red[0] <= red[1] : contain_red = True
+        else :contain_red = False
 
-        # チーの場合どの牌で鳴くかも返す
-        if action in (3,4,5) :
-            if tile in TileType.REDS : tile += 5
-
-            if   action == 3 : tile1, tile2 = tile - 2, tile - 1
-            elif action == 4 : tile1, tile2 = tile - 1, tile + 1
-            elif action == 5 : tile1, tile2 = tile + 1, tile + 2
-
-            if players[player_num].reds[tile1 // 10] : tile1 -= 5
-            elif players[player_num].reds[tile2 // 10] : tile2 -= 5
-
-        return action, 0, 0, 0, 0, 0, tile1, tile2
+        return action, contain_red
 
 
     # リーチするかどうか決める
