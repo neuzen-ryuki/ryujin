@@ -1,4 +1,4 @@
-#std
+# std
 import sys
 
 # 3rd
@@ -10,9 +10,10 @@ from .mytypes import TileType, ActionType
 
 
 class Game :
-    def __init__(self, mode:str, feed=None) :
+    def __init__(self, mode:str, sc=None, feed=None) :
         self.mode = mode
         self.feed = feed
+        self.shanten_calculator = sc
         self.players = [Player(i) for i in range(4)]
 
 
@@ -38,7 +39,7 @@ class Game :
         elif item.tag[0] == "G"         : self.proc_Dahai(3, int(item.tag[1:]))
         elif item.tag    == "N"         : self.proc_N(int(item.attrib["who"]), int(item.attrib["m"]))
         elif item.tag    == "INIT"      : self.proc_INIT(item.attrib)
-        elif item.tag    == "REACH"     : self.proc_REACH(item.attrib)
+        elif item.tag    == "REACH"     : self.proc_REACH(int(item.attrib["who"]), item.attrib["step"])
         elif item.tag    == "AGARI"     : self.proc_AGARI(item.attrib)
         elif item.tag    == "RYUUKYOKU" : self.proc_RYUUKYOKU(item.attrib)
         elif item.tag    == "BYE"       : self.proc_BYE(int(item.attrib["who"]))
@@ -46,18 +47,16 @@ class Game :
 
     # xml_logをひたすら読んでmodeに応じた情報をfeedに書き込む．create_valで使う．
     def read_log(self) :
-        for item in self.xml_root[4:] :
-            self.switch_proc(item)
-            if self.mode and p.BATCH_SIZE == self.feed.i_batch : self.feed.init_feed()
+        for item in self.xml_root[4:] : self.switch_proc(item)
 
 
-    # 学習と同時にfeedを作る時用のgenerator．tensorflowのfitに渡して使う．
+    # 学習と同時にfeedを作る時用のgenerator
     def generate_feed(self) :
         for item in self.xml_root[4:] :
             self.switch_proc(item)
             if p.BATCH_SIZE == self.feed.i_batch :
                 yield (self.feed.feed_x, self.feed.feed_y)
-                self.feed.init_feed()
+                self.feed.clear_feed()
 
 
     # INITタグの処理
@@ -80,6 +79,7 @@ class Game :
         self.write_flag = False                                 # 鳴き学習用
         self.is_first_turn = True                               # 1巡目かどうか
         self.prevailing_wind = 31 + self.rounds_num             # 場風にあたる牌番号
+        self.ready_flag = False                                 # 立直宣言したかどうか
 
         # 鳴き用
         self.tile = -1
@@ -87,7 +87,6 @@ class Game :
         self.tile2 = -1
         self.pos = -1
         self.contain_red = False
-
 
         # Player関係のメンバ変数を初期化
         ten = attr["ten"].split(",")
@@ -122,9 +121,9 @@ class Game :
 
     # T, U, V, Wタグの処理
     def proc_Tsumo(self, player_num, tile) :
-        # 一つ前の打牌で，誰かが鳴けたけど鳴かなかった時のfeed_steal_yへの書き込み
+        # 一つ前の打牌で，誰かが鳴けたけど鳴かなかった時のfeed__yへの書き込み
         if self.write_flag :
-            self.feed.write_feed_steal(self, self.players, 0)
+            self.feed.write_feed_steal(self, self.players, 0, False)
             self.write_flag = False
 
         self.org_got_tile = tile
@@ -134,21 +133,30 @@ class Game :
         self.players[player_num].get_tile(self.convert_tile(tile))
 
 
+    # リーチできるかどうかの判定
+    def can_declare_ready(self, game) :
+        if self.has_stealed or self.has_declared_ready or game.remain_tiles_num < 4 : return False
+        shanten_nums = game.shanten_calculator.get_shanten_nums(self.hand, self.opened_sets_num)
+        for s in shanten_nums :
+            if s <= 0 : return True
+
+
     # D, E, F, Gタグの処理
     def proc_Dahai(self, player_num, tile) :
+        player = self.players[player_num]
+
         if tile in {16, 52, 88} : self.appearing_red_tiles[tile // 36] = True
         discarded_tile = self.convert_tile(tile)
         exchanged = False
         if tile != self.org_got_tile : exchanged = True
 
         # feed_mainへ書き込み
-        if self.mode == "main" and not(self.players[player_num].has_declared_ready) and self.players[player_num].exists :
-            self.feed.write_feed_x(self, self.players, player_num)
-            self.feed.write_feed_main_y(discarded_tile)
+        if self.mode == "main" and not(player.has_declared_ready) and player.exists :
+            self.feed.write_feed_main(self, self.players, player_num, discarded_tile, self.ready_flag)
             self.feed.i_batch += 1
 
         # プレイヤが牌を切る
-        self.players[player_num].discard_tile(discarded_tile, exchanged)
+        player.discard_tile(discarded_tile, exchanged)
 
         # 捨てられた牌を見えている牌に記録
         self.add_to_appearing_tiles(discarded_tile)
@@ -157,7 +165,7 @@ class Game :
         for i in range(1, 4) : self.players[(player_num + i) % 4].add_same_turn_furiten_tile(discarded_tile)
 
         # 鳴いた後に切った場合, 手出し牌に牌を記録
-        if self.steal_flag : self.players[player_num].add_tile_to_discard_tiles_after_stealing(discarded_tile)
+        if self.steal_flag : player.add_tile_to_discard_tiles_after_stealing(discarded_tile)
         self.steal_flag = False
 
         # 1巡目かどうかの状態を切り替える
@@ -182,7 +190,7 @@ class Game :
 
         # feed_steal_xyへの書き込み
         if self.write_flag :
-            self.feed.write_feed_steal(self, self.players, action)
+            self.feed.write_feed_steal(self, self.players, action, self.contain_red)
             self.write_flag = False
 
         # 鳴きによる変数処理
@@ -199,6 +207,7 @@ class Game :
 
     # Nタグについているmコードを解析してそれぞれの鳴きに対する処理をする
     def analyze_mc(self, player_num:int, mc:int) -> int :
+        self.contain_red = False
         # チー
         if  (mc & 0x0004) :
             pt = (mc & 0xFC00) >> 10
@@ -209,7 +218,9 @@ class Game :
             run = [n, n+1, n+2]
             pp = [(mc & 0x0018) >> 3, (mc & 0x0060) >> 5, (mc & 0x0180) >> 7]
             for i in range(3) :
-                if (run[i] % 10 == 5 and pp[i] == 0) : run[i] -= 5
+                if (run[i] % 10 == 5 and pp[i] == 0) :
+                    run[i] -= 5
+                    self.contain_red = True
             if   r == 0 : self.tile, self.tile1, self.tile2 = run[0], run[1], run[2]
             elif r == 1 : self.tile, self.tile1, self.tile2 = run[1], run[0], run[2]
             elif r == 2 : self.tile, self.tile1, self.tile2 = run[2], run[0], run[1]
@@ -223,7 +234,6 @@ class Game :
             pn =  pt // 3
             color = pn // 9
             self.tile = (color * 10) + (pn % 9) + 1
-            self.contain_red = False
             if(color != 3 and self.tile % 10 == 5) :
                 if ((mc & 0x0060) == 0) : pass
                 elif (r == 0)           : self.tile -= 5
@@ -315,10 +325,11 @@ class Game :
 
 
     # リーチ時の処理
-    def proc_REACH(self, attr) :
-        if attr["step"] == "2" :
-            player_num, step = int(attr["who"]), attr["step"]
+    def proc_REACH(self, player_num:int, step:str) -> None :
+        if step == "1" :
             self.ready_flag = True
+        if step == "2" :
+            self.ready_flag = False
             self.deposits_num += 1
             self.players[player_num].declare_ready(self.is_first_turn)
 

@@ -11,7 +11,7 @@ from .src.pymod.mytypes import TileType
 from .src.cymod.feed import Feed
 
 
-class Action :
+class ComputerPlayer :
     def __init__(self) :
         self.main_feed = Feed("main", 1)
         self.main_model  = load_model("main")

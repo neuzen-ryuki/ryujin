@@ -26,7 +26,7 @@ class Player :
         self.opened_reds = [False] * 3                    # 副露牌に赤が含まれているか
         self.discarded_tiles = []                         # 河
         self.discarded_tiles_hist = [0] * 38              # 枚数だけ記録する河
-        self.discarded_state = []                         # D:ツモ切り，d:手出し , i:"D" ==> discarded_tiles[i]はツモ切られた牌
+        self.discarded_state = []                         # True:手出し，False:ツモ切り， i:False ==> discarded_tiles[i]はツモ切られた牌
         self.furiten_tiles = [0] * 38                     # フリテン牌 furiten_tiles[i] > 0 ==> i番の牌は既に自分で切っているか同巡に切られた牌
         self.same_turn_furiten_tiles = []                 # 同巡に切られた牌
 
@@ -36,6 +36,7 @@ class Player :
         self.has_right_to_one_shot = False                # 一発があるか
         self.has_right_to_nagashi_mangan = True           # 流し満貫継続中か
         self.is_ready = False                             # テンパイか
+        self.ready_turn_num = 0                           # 立直した巡目
 
         self.opened_sets_num = 0                          # 晒している面子の数(暗槓含む)
         self.kans_num = 0                                 # 槓した回数
@@ -48,11 +49,13 @@ class Player :
         self.winds_num = 0                                # 大四喜パオ判定用
 
 
+
     # 立直宣言
     def declare_ready(self, is_first_turn:bool) -> None :
         self.has_declared_ready = True
         if is_first_turn : self.has_declared_double_ready = True
         self.has_right_to_one_shot = True
+        self.ready_turn_num = len(self.discarded_tiles)
         self.score -= 1000
 
 
@@ -70,6 +73,7 @@ class Player :
         # 河への記録
         self.discarded_state += [exchanged]
         self.discarded_tiles += [discarded_tile]
+        self.discarded_tiles_hist[discarded_tile] += 1
 
         # 赤牌を番号に変換
         if discarded_tile in TileType.REDS :
@@ -80,8 +84,6 @@ class Player :
         self.hand[discarded_tile] -= 1
         # 切る牌をフリテン牌に記録する
         self.furiten_tiles[discarded_tile] += 1
-        # 枚数だけ記録する河に切る牌を記録する
-        self.discarded_tiles_hist[discarded_tile] += 1
 
         # 流し満貫継続中かどうかチェック
         if self.has_right_to_nagashi_mangan and not(discarded_tile in (TileType.TERMINALS | TileType.HONORS)) :

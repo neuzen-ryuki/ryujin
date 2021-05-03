@@ -7,6 +7,7 @@ scratch*
 *.bak
 *.pkl
 MEMO*
+params.py
 
 
 # Byte-compiled / optimized / DLL files
