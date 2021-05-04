@@ -9,7 +9,7 @@ from tensorflow.keras import layers
 from termcolor import colored
 
 # ours
-from .params import Params as p
+from params import Params as p
 
 
 # mainモデルを構築
