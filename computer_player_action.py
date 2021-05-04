@@ -12,14 +12,15 @@ from feed import Feed
 
 class ComputerPlayerAction :
     def __init__(self) :
-        self.main_feed = Feed("main", 1)
-        self.main_model  = load_model("main")
+        # self.main_feed = Feed("main", 1)
+        # self.main_model  = load_model("main")
 
-        self.steal_feed = Feed("steal", 1)
-        self.steal_model = load_model("steal")
+        # self.steal_feed = Feed("steal", 1)
+        # self.steal_model = load_model("steal")
 
-        self.ready_feed = Feed("ready", 1)
-        self.ready_model = load_model("ready")
+        # self.ready_feed = Feed("ready", 1)
+        # self.ready_model = load_model("ready")
+        pass
 
 
     # 切る牌を決める
