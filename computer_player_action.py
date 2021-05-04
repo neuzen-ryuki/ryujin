@@ -5,7 +5,7 @@ import sys
 import numpy as np
 
 # ours
-from .src.pymod.model import create_model
+from .src.pymod.model import create_model, load_model
 from .src.pymod.mytypes import TileType
 from .src.cymod.feed import Feed
 
